@@ -104,10 +104,23 @@
         <span class="file-stats" id="file-stats"></span>
       </div>
 
+      <div id="batch-bar" class="batch-bar hidden">
+        <span id="batch-count" class="batch-count"></span>
+        <button class="btn btn-sm" id="btn-deselect-all"
+                data-i18n="files.deselect_all">Auswahl aufheben</button>
+        <button class="btn btn-sm btn-danger" id="btn-bulk-delete"
+                data-i18n="files.bulk_del_title">Löschen</button>
+      </div>
+
       <div class="table-wrap">
         <table class="file-table">
           <thead>
             <tr>
+              <th class="col-check">
+                <input type="checkbox" id="select-all-files"
+                       data-i18n-title="files.select_all_title"
+                       title="Alle wählen / abwählen">
+              </th>
               <th class="sortable" data-col="name">
                 <span data-i18n="files.col_name">Name</span>
                 <span class="sort-icon">↕</span>
@@ -130,7 +143,7 @@
           </thead>
           <tbody id="file-list">
             <tr>
-              <td colspan="6">
+              <td colspan="7">
                 <div class="empty-state">
                   <div class="icon">📂</div>
                   <p data-i18n="files.empty">Noch kein Archiv gescannt.</p>
@@ -154,6 +167,7 @@
       <div class="dup-scroll" id="dup-list">
         <div class="dup-empty" data-i18n="dups.none">Keine Duplikate gefunden.</div>
       </div>
+      <div class="pagination" id="dup-pagination"></div>
     </div>
 
     <!-- Monitor -->

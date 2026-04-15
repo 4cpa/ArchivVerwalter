@@ -105,6 +105,10 @@ const state = {
   scanPollers:     {},
   activityLog:     [],
   serverPlatform:  'linux',  // updated from /api/health
+  selectedFiles:   new Set(),
+  dupGroups:       [],
+  dupPage:         1,
+  dupLimit:        30,
 };
 
 function log(msg) {
@@ -125,16 +129,19 @@ function renderArchives() {
   ul.innerHTML = state.archives.map(a => {
     const active    = state.selectedArchive === a.id ? 'active' : '';
     const scanning  = state.scanPollers[a.id] ? 'scanning' : '';
+    const scanCtrl  = state.scanPollers[a.id]
+      ? `<span class="scan-running-label">${escHtml(t('arch.scanning'))}</span>`
+      : `<button class="btn-scan" data-action="scan" data-id="${a.id}"
+                 title="${escHtml(t('arch.scan_title'))}">\u25b6 ${escHtml(t('arch.scan_btn'))}</button>`;
     return `
       <li class="archive-item ${active}" data-id="${a.id}">
         <div class="archive-dot ${scanning}"></div>
         <div class="archive-info">
           <div class="archive-name" title="${escHtml(a.path)}">${escHtml(a.name)}</div>
           <div class="archive-meta">${fmtNum(a.file_count)} · ${formatSize(a.total_size)}</div>
+          ${scanCtrl}
         </div>
         <div class="archive-actions">
-          <button class="btn-xs" data-action="scan" data-id="${a.id}"
-                  title="${escHtml(t('arch.scan_title'))}">↻</button>
           <button class="btn-xs danger" data-action="del-archive" data-id="${a.id}"
                   title="${escHtml(t('arch.remove_title'))}">✕</button>
         </div>
@@ -143,24 +150,39 @@ function renderArchives() {
 }
 
 /* ── Render: File table ───────────────────────────────────────────────────── */
+function updateBatchBar() {
+  const bar   = document.getElementById('batch-bar');
+  const count = state.selectedFiles.size;
+  if (!bar) return;
+  if (count === 0) {
+    bar.classList.add('hidden');
+  } else {
+    bar.classList.remove('hidden');
+    document.getElementById('batch-count').textContent = t('files.selected', { count });
+  }
+}
+
 function renderFiles() {
   const tbody = document.getElementById('file-list');
   const stats = document.getElementById('file-stats');
 
   if (!state.files.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">📂</div><p>${escHtml(t('files.none'))}</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📂</div><p>${escHtml(t('files.none'))}</p></div></td></tr>`;
     stats.textContent = '';
+    updateBatchBar();
     return;
   }
 
   stats.textContent = t('files.stats', { total: fmtNum(state.total), page: state.page });
 
   tbody.innerHTML = state.files.map(f => {
-    const isDup  = f.dup_count > 1;
-    const dupTag = isDup ? `<span class="ext-badge dup-badge">${escHtml(t('files.dup_badge', { count: f.dup_count }))}</span>` : '';
-    const ext    = f.ext ? `<span class="ext-badge">${escHtml(f.ext.toUpperCase())}</span>` : '\u2014';
+    const isDup   = f.dup_count > 1;
+    const dupTag  = isDup ? `<span class="ext-badge dup-badge">${escHtml(t('files.dup_badge', { count: f.dup_count }))}</span>` : '';
+    const ext     = f.ext ? `<span class="ext-badge">${escHtml(f.ext.toUpperCase())}</span>` : '\u2014';
+    const checked = state.selectedFiles.has(f.id) ? ' checked' : '';
     return `
       <tr data-id="${f.id}">
+        <td class="col-check"><input type="checkbox" class="row-check" data-id="${f.id}"${checked}></td>
         <td>
           <div class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</div>
           <div class="file-path">${escHtml(f.path)}</div>
@@ -187,6 +209,16 @@ function renderFiles() {
       </tr>`;
   }).join('');
 
+  // Sync select-all checkbox
+  const allChecked  = state.files.every(f => state.selectedFiles.has(f.id));
+  const someChecked = state.files.some(f => state.selectedFiles.has(f.id));
+  const selAll = document.getElementById('select-all-files');
+  if (selAll) {
+    selAll.checked       = allChecked;
+    selAll.indeterminate = !allChecked && someChecked;
+  }
+
+  updateBatchBar();
   renderPagination();
   updateSortHeaders();
 }
@@ -229,22 +261,57 @@ function updateSortHeaders() {
 }
 
 /* ── Render: Duplicates ───────────────────────────────────────────────────── */
+function renderDupPagination() {
+  const el     = document.getElementById('dup-pagination');
+  if (!el) return;
+  const total  = state.dupGroups.length;
+  const totalP = Math.ceil(total / state.dupLimit);
+  if (totalP <= 1) { el.innerHTML = ''; return; }
+
+  const cur   = state.dupPage;
+  const pages = [];
+  pages.push(`<button class="page-btn" ${cur === 1 ? 'disabled' : ''} data-page="${cur - 1}">\u2039</button>`);
+
+  const range = new Set([1, totalP, cur - 1, cur, cur + 1].filter(p => p >= 1 && p <= totalP));
+  let prev = 0;
+  for (const p of [...range].sort((a, b) => a - b)) {
+    if (prev && p - prev > 1) pages.push(`<span class="page-info">\u2026</span>`);
+    pages.push(`<button class="page-btn ${p === cur ? 'active' : ''}" data-page="${p}">${p}</button>`);
+    prev = p;
+  }
+
+  pages.push(`<button class="page-btn" ${cur === totalP ? 'disabled' : ''} data-page="${cur + 1}">\u203a</button>`);
+  pages.push(`<span class="page-info">${fmtNum(total)}\u00a0${escHtml(t('dups.groups'))}</span>`);
+  el.innerHTML = pages.join('');
+}
+
 function renderDuplicates(groups) {
   const wrap = document.getElementById('dup-list');
+  state.dupGroups = groups;
+
+  // Clamp page to valid range after data update
+  const totalPages = Math.max(1, Math.ceil(groups.length / state.dupLimit));
+  if (state.dupPage > totalPages) state.dupPage = totalPages;
+
   if (!groups.length) {
     wrap.innerHTML = `<div class="dup-empty">${escHtml(t('dups.success'))}</div>`;
     wrap._groups = [];
+    renderDupPagination();
     return;
   }
 
-  wrap.innerHTML = groups.map((g, gi) => {
+  const start      = (state.dupPage - 1) * state.dupLimit;
+  const pageGroups = groups.slice(start, start + state.dupLimit);
+
+  wrap.innerHTML = pageGroups.map((g, gi) => {
+    const realGi = start + gi;
     const rows = g.files.map((f, fi) => {
       const isKeeper = fi === 0;
       return `
-        <tr class="${isKeeper ? 'keeper' : ''}" data-group="${gi}">
+        <tr class="${isKeeper ? 'keeper' : ''}" data-group="${realGi}">
           <td>${isKeeper
             ? `<span style="color:var(--success)">${escHtml(t('dups.keeping'))}</span>`
-            : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${gi}">${escHtml(t('dups.keep'))}</button>`
+            : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`
           }</td>
           <td class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</td>
           <td>${escHtml(f.archive_name)}</td>
@@ -258,12 +325,12 @@ function renderDuplicates(groups) {
     }).join('');
 
     return `
-      <div class="dup-group" id="dup-group-${gi}">
+      <div class="dup-group" id="dup-group-${realGi}">
         <div class="dup-group-header">
           <span>${escHtml(t('dups.count', { count: g.count }))}</span>
           <span class="dup-hash">${g.hash.slice(0, 16)}\u2026</span>
           <button class="btn btn-sm btn-danger"
-                  data-action="resolve-all" data-group="${gi}">
+                  data-action="resolve-all" data-group="${realGi}">
             ${escHtml(t('dups.resolve_btn'))}
           </button>
         </div>
@@ -272,6 +339,7 @@ function renderDuplicates(groups) {
   }).join('');
 
   wrap._groups = groups;
+  renderDupPagination();
 }
 
 /* ── Render: Health monitor ───────────────────────────────────────────────── */
@@ -330,7 +398,8 @@ async function loadFiles() {
   }
 }
 
-async function loadDuplicates() {
+async function loadDuplicates(resetPage = false) {
+  if (resetPage) state.dupPage = 1;
   try {
     const groups = await api.getDuplicates();
     renderDuplicates(groups);
@@ -404,7 +473,7 @@ function switchView(viewName) {
   document.getElementById(`view-${viewName}`)?.classList.add('active');
   document.querySelector(`.nav-btn[data-view="${viewName}"]`)?.classList.add('active');
 
-  if (viewName === 'duplicates') loadDuplicates();
+  if (viewName === 'duplicates') loadDuplicates(true);
   if (viewName === 'monitor')    loadHealth();
 }
 
@@ -413,8 +482,8 @@ function rerender() {
   renderArchives();
   renderFiles();
   if (state.view === 'duplicates') {
-    const wrap = document.getElementById('dup-list');
-    if (wrap._groups) renderDuplicates(wrap._groups);
+    if (state.dupGroups.length) renderDuplicates(state.dupGroups);
+    else renderDupPagination();
   }
   if (state.view === 'monitor') loadHealth();
   updatePathPlaceholder();
@@ -610,8 +679,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (action === 'del-archive') {
       e.stopPropagation();
+      const btn  = e.target.closest('[data-action="del-archive"]');
       const arch = state.archives.find(a => a.id === id);
       if (!await confirmDlg(t('arch.remove_dlg_title'), t('arch.remove_dlg_body', { name: arch?.name ?? '' }))) return;
+      // Show loading state while waiting for backend
+      if (btn) { btn.disabled = true; btn.textContent = '\u2026'; }
       try {
         await api.deleteArchive(id);
         if (state.selectedArchive === id) state.selectedArchive = null;
@@ -619,7 +691,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         toast(t('arch.removed'), 'success');
         await loadArchives();
         await loadFiles();
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {
+        if (btn) { btn.disabled = false; btn.textContent = '\u2715'; }
+        toast(err.message, 'error');
+      }
       return;
     }
 
@@ -783,8 +858,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // ── Duplicates pagination ─────────────────────────────────────────────────
+  document.getElementById('dup-pagination').addEventListener('click', (e) => {
+    const page = parseInt(e.target.dataset.page, 10);
+    if (!page || e.target.disabled) return;
+    state.dupPage = page;
+    renderDuplicates(state.dupGroups);
+    document.getElementById('dup-list').scrollTop = 0;
+  });
+
+  // ── Select-all checkbox ───────────────────────────────────────────────────
+  document.getElementById('select-all-files').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      state.files.forEach(f => state.selectedFiles.add(f.id));
+    } else {
+      state.files.forEach(f => state.selectedFiles.delete(f.id));
+    }
+    renderFiles();
+  });
+
+  // ── Row checkboxes ────────────────────────────────────────────────────────
+  document.getElementById('file-list').addEventListener('change', (e) => {
+    if (!e.target.classList.contains('row-check')) return;
+    const id = parseInt(e.target.dataset.id, 10);
+    if (e.target.checked) state.selectedFiles.add(id);
+    else state.selectedFiles.delete(id);
+
+    const allChecked  = state.files.every(f => state.selectedFiles.has(f.id));
+    const someChecked = state.files.some(f => state.selectedFiles.has(f.id));
+    const selAll = document.getElementById('select-all-files');
+    selAll.checked       = allChecked;
+    selAll.indeterminate = !allChecked && someChecked;
+    updateBatchBar();
+  });
+
+  // ── Deselect all ──────────────────────────────────────────────────────────
+  document.getElementById('btn-deselect-all').addEventListener('click', () => {
+    state.selectedFiles.clear();
+    renderFiles();
+  });
+
+  // ── Bulk delete ───────────────────────────────────────────────────────────
+  document.getElementById('btn-bulk-delete').addEventListener('click', async () => {
+    const ids = [...state.selectedFiles];
+    if (!ids.length) return;
+    if (!await confirmDlg(t('files.bulk_del_title'), t('files.bulk_del_body', { count: ids.length }))) return;
+    let errors = 0;
+    await Promise.all(ids.map(id => api.deleteFile(id, false).catch(() => { errors++; })));
+    state.selectedFiles.clear();
+    if (errors) toast(t('files.bulk_del_errors', { errors }), 'error');
+    else toast(t('files.bulk_del_done', { count: ids.length }), 'success');
+    log(t('files.bulk_del_done', { count: ids.length - errors }));
+    await loadFiles();
+    await loadArchives();
+  });
+
   // ── Refresh buttons ───────────────────────────────────────────────────────
-  document.getElementById('btn-refresh-dups').addEventListener('click', loadDuplicates);
+  document.getElementById('btn-refresh-dups').addEventListener('click', () => loadDuplicates(true));
   document.getElementById('btn-refresh-health').addEventListener('click', loadHealth);
 
   // ── Initial data load ─────────────────────────────────────────────────────

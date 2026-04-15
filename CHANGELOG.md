@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.11] — 2026-04-15
+
+### Added
+- Mehrfachauswahl in der Datei-Liste: Checkbox-Spalte mit „Alle wählen"-Header-Checkbox;
+  blau hervorgehobene Batch-Aktionsleiste erscheint sobald Dateien ausgewählt sind und
+  erlaubt das gleichzeitige Löschen beliebig vieler Dateien.
+- Duplikate-Ansicht: Client-seitige Paginierung (30 Gruppen/Seite) verhindert, dass
+  Tausende von Duplikat-Gruppen auf einmal in den DOM gerendert werden — die Ansicht ist
+  nun performant und zeigt echten Inhalt statt horizontaler Striche.
+
+### Fixed
+- Scan-Button in der Archiv-Sidebar ist jetzt dauerhaft sichtbar (▶ Scan starten) statt
+  nur beim Hover aufzutauchen; während eines laufenden Scans zeigt er „Wird gescannt…".
+- Index-Entfernen (macOS): Der Löschen-Button wechselt sofort in einen Ladezustand (…),
+  damit das Warten auf die SQLite-Operation klar als laufend erkennbar ist.
+
+---
+
 ## [1.2.10] — 2026-04-15
 
 ### Fixed

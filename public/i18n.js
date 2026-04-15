@@ -16,6 +16,9 @@ const TRANSLATIONS = {
     'arch.path_ph_win':  'Pfad, z.B. C:\\Users\\user\\Fotos oder \\\\Server\\Freigabe',
     'arch.add_title':    'Archiv hinzufügen',
     'arch.scan_title':   'Scannen',
+    'arch.scan_btn':     'Scan starten',
+    'arch.scanning':     'Wird gescannt\u2026',
+    'arch.removing':     'Wird entfernt\u2026',
     'arch.remove_title': 'Entfernen',
 
     // Archive actions / toasts / logs
@@ -64,6 +67,13 @@ const TRANSLATIONS = {
     'files.deleted':        'Datei gel\u00f6scht',
     'files.log_deleted':    'Datei gel\u00f6scht: {name}',
     'files.load_error':     'Fehler beim Laden der Dateien: {msg}',
+    'files.select_all_title': 'Alle w\u00e4hlen / abw\u00e4hlen',
+    'files.selected':        '{count} ausgew\u00e4hlt',
+    'files.deselect_all':    'Auswahl aufheben',
+    'files.bulk_del_title':  'Dateien l\u00f6schen?',
+    'files.bulk_del_body':   '{count} Datei(en) unwiderruflich von der Festplatte l\u00f6schen?',
+    'files.bulk_del_done':   '{count} Datei(en) gel\u00f6scht',
+    'files.bulk_del_errors': '{errors} Fehler beim L\u00f6schen',
 
     // Duplicates view
     'dups.title':        'Duplikate',
@@ -79,6 +89,7 @@ const TRANSLATIONS = {
     'dups.log_resolved': 'Duplikatgruppe aufgel\u00f6st: {count} Dateien gel\u00f6scht',
     'dups.load_error':   'Fehler: {msg}',
     'dups.dl_title':     'Herunterladen',
+    'dups.groups':       'Gruppen',
 
     // Monitor
     'monitor.title':      'Monitor',
@@ -121,6 +132,9 @@ const TRANSLATIONS = {
     'arch.path_ph_win':  'Path, e.g. C:\\Users\\user\\Photos or \\\\Server\\Share',
     'arch.add_title':    'Add archive',
     'arch.scan_title':   'Scan',
+    'arch.scan_btn':     'Start scan',
+    'arch.scanning':     'Scanning\u2026',
+    'arch.removing':     'Removing\u2026',
     'arch.remove_title': 'Remove',
 
     'arch.path_required':    'Path is required',
@@ -166,6 +180,13 @@ const TRANSLATIONS = {
     'files.deleted':        'File deleted',
     'files.log_deleted':    'File deleted: {name}',
     'files.load_error':     'Error loading files: {msg}',
+    'files.select_all_title': 'Select / deselect all',
+    'files.selected':        '{count} selected',
+    'files.deselect_all':    'Clear selection',
+    'files.bulk_del_title':  'Delete files?',
+    'files.bulk_del_body':   'Permanently delete {count} file(s) from disk?',
+    'files.bulk_del_done':   '{count} file(s) deleted',
+    'files.bulk_del_errors': '{errors} error(s) during deletion',
 
     'dups.title':        'Duplicates',
     'dups.none':         'No duplicates found.',
@@ -180,6 +201,7 @@ const TRANSLATIONS = {
     'dups.log_resolved': 'Duplicate group resolved: {count} files deleted',
     'dups.load_error':   'Error: {msg}',
     'dups.dl_title':     'Download',
+    'dups.groups':       'groups',
 
     'monitor.title':      'Monitor',
     'monitor.status':     'Status',
@@ -220,6 +242,9 @@ const TRANSLATIONS = {
     'arch.path_ph_win':  'Chemin, p.ex. C:\\Users\\user\\Photos ou \\\\Serveur\\Partage',
     'arch.add_title':    'Ajouter une archive',
     'arch.scan_title':   'Scanner',
+    'arch.scan_btn':     'Lancer le scan',
+    'arch.scanning':     'Scan en cours\u2026',
+    'arch.removing':     'Suppression\u2026',
     'arch.remove_title': 'Supprimer',
 
     'arch.path_required':    'Chemin requis',
@@ -265,6 +290,13 @@ const TRANSLATIONS = {
     'files.deleted':        'Fichier supprim\u00e9',
     'files.log_deleted':    'Fichier supprim\u00e9\u00a0: {name}',
     'files.load_error':     'Erreur lors du chargement\u00a0: {msg}',
+    'files.select_all_title': 'Tout s\u00e9lectionner / d\u00e9s\u00e9lectionner',
+    'files.selected':        '{count} s\u00e9lectionn\u00e9(s)',
+    'files.deselect_all':    'D\u00e9s\u00e9lectionner',
+    'files.bulk_del_title':  'Supprimer les fichiers\u00a0?',
+    'files.bulk_del_body':   'Supprimer d\u00e9finitivement {count} fichier(s) du disque\u00a0?',
+    'files.bulk_del_done':   '{count} fichier(s) supprim\u00e9(s)',
+    'files.bulk_del_errors': '{errors} erreur(s) lors de la suppression',
 
     'dups.title':        'Doublons',
     'dups.none':         'Aucun doublon trouv\u00e9.',
@@ -279,6 +311,7 @@ const TRANSLATIONS = {
     'dups.log_resolved': 'Groupe de doublons r\u00e9solu\u00a0: {count} fichiers supprim\u00e9s',
     'dups.load_error':   'Erreur\u00a0: {msg}',
     'dups.dl_title':     'T\u00e9l\u00e9charger',
+    'dups.groups':       'groupes',
 
     'monitor.title':      'Moniteur',
     'monitor.status':     'Statut',
