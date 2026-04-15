@@ -3,6 +3,11 @@
   "version": "1.0.1",
   "description": "Archive manager — index, deduplicate and browse file archives via web UI",
   "main": "electron/main.js",
+  "author": {
+    "name": "4CPA — Forecasting Press Association",
+    "email": "admin@4cpa.ch",
+    "url": "https://github.com/4cpa"
+  },
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
