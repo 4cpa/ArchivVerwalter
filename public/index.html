@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArchivVerwalter</title>
+  <title>ArchivVerwalter — 4CPA</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,10 +13,17 @@
 
   <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
   <aside class="sidebar">
+
+    <!-- Brand header -->
     <div class="sidebar-header">
-      <div class="sidebar-brand">
-        <h1>ArchivVerwalter</h1>
-        <div class="version">v1.0</div>
+      <div class="brand-row">
+        <img src="logo-white.png" alt="4CPA" class="brand-logo">
+        <div class="brand-text">
+          <div class="brand-title">
+            ArchivVerwalter <span class="vv-mark">vV</span>
+          </div>
+          <div class="brand-org">4CPA &middot; Transivroom Division</div>
+        </div>
       </div>
       <div class="lang-selector">
         <button class="lang-btn active" data-lang="de">DE</button>
@@ -24,6 +32,7 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="main-nav">
       <button class="nav-btn active" data-view="files">
         📁 <span data-i18n="nav.files">Dateien</span>
@@ -37,6 +46,7 @@
       </button>
     </nav>
 
+    <!-- Archive list -->
     <div class="sidebar-section">
       <div class="section-header">
         <span data-i18n="arch.section">ARCHIVE</span>
@@ -44,7 +54,6 @@
                 data-i18n-title="arch.add_title" title="Archiv hinzufügen">+</button>
       </div>
 
-      <!-- Add-archive form -->
       <div id="add-archive-form" class="add-form hidden">
         <input type="text" id="archive-name"
                data-i18n-ph="arch.name_ph"
@@ -62,12 +71,19 @@
 
       <ul id="archive-list" class="archive-list"></ul>
     </div>
+
+    <!-- Footer with contact -->
+    <footer class="sidebar-footer">
+      <div class="footer-name">4CPA &ndash; Forecasting Press Association</div>
+      <a href="mailto:admin@4cpa.ch" class="footer-mail">admin@4cpa.ch</a>
+    </footer>
+
   </aside>
 
   <!-- ── Main area ─────────────────────────────────────────────────────── -->
   <main class="main">
 
-    <!-- ── Dateien ──────────────────────────────────────────────── -->
+    <!-- Dateien -->
     <div id="view-files" class="view active">
       <div class="toolbar">
         <div class="filters">
@@ -127,7 +143,7 @@
       <div class="pagination" id="pagination"></div>
     </div>
 
-    <!-- ── Duplikate ─────────────────────────────────────────────── -->
+    <!-- Duplikate -->
     <div id="view-duplicates" class="view">
       <div class="view-header">
         <h2 data-i18n="dups.title">Duplikate</h2>
@@ -139,7 +155,7 @@
       </div>
     </div>
 
-    <!-- ── Monitor ───────────────────────────────────────────────── -->
+    <!-- Monitor -->
     <div id="view-monitor" class="view">
       <div class="view-header">
         <h2 data-i18n="monitor.title">Monitor</h2>
@@ -158,10 +174,8 @@
   </main>
 </div>
 
-<!-- Toast container -->
 <div class="toast-wrap" id="toasts"></div>
 
-<!-- i18n must load before app.js -->
 <script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
