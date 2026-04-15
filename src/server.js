@@ -32,6 +32,124 @@ function openWithOS(filePath) {
   }
 }
 
+// ── Drive / volume detection ──────────────────────────────────────────────
+
+/** DriveType codes returned by WMIC on Windows */
+const WIN_DRIVE_TYPES = { 2: 'USB', 3: '', 4: 'Netzwerk', 5: 'CD/DVD' };
+
+/**
+ * Run a shell command and return stdout as a string.
+ * Resolves with empty string on error so callers can always fall through.
+ */
+function runCmd(cmd, opts = {}) {
+  return new Promise((resolve) => {
+    exec(cmd, { timeout: 4000, ...opts }, (err, stdout) =>
+      resolve(err ? '' : stdout)
+    );
+  });
+}
+
+/**
+ * Return an array of { label, path } objects for available drives/volumes.
+ * Platform-aware: Windows uses WMIC for rich labels (USB/Network/Local),
+ * Linux reads /proc/mounts to also catch network shares (CIFS/NFS/SSHFS),
+ * macOS lists /Volumes/.
+ */
+async function listDrives() {
+  const drives = [];
+
+  // ── Windows ──────────────────────────────────────────────────────────────
+  if (process.platform === 'win32') {
+    const out = await runCmd(
+      'wmic logicaldisk get Caption,DriveType,VolumeName /format:csv',
+      { shell: true }
+    );
+    const parsed = [];
+    for (const line of out.split(/\r?\n/)) {
+      const parts = line.split(',');
+      // CSV header: Node,Caption,DriveType,VolumeName
+      if (parts.length < 4 || !parts[1] || !/^[A-Z]:$/.test(parts[1].trim())) continue;
+      const caption    = parts[1].trim();
+      const driveType  = parseInt(parts[2].trim(), 10);
+      const volumeName = parts[3].trim();
+      const typeTag    = WIN_DRIVE_TYPES[driveType];
+      const tag        = typeTag !== undefined ? typeTag : '';
+      const label      = [caption, volumeName, tag].filter(Boolean).join(' \u2014 ');
+      parsed.push({ label, path: `${caption}\\`, type: driveType });
+    }
+
+    // Fallback: A-Z scan if WMIC returned nothing (e.g. restricted environments)
+    if (parsed.length === 0) {
+      for (let c = 65; c <= 90; c++) {
+        const p = `${String.fromCharCode(c)}:\\`;
+        try { await fs.promises.access(p, fs.constants.R_OK); parsed.push({ label: `${String.fromCharCode(c)}:`, path: p }); }
+        catch { /* not present */ }
+      }
+    }
+    drives.push(...parsed);
+
+  // ── macOS ─────────────────────────────────────────────────────────────────
+  } else if (process.platform === 'darwin') {
+    drives.push({ label: '/ (Root)', path: '/' });
+    try {
+      const vols = await fs.promises.readdir('/Volumes', { withFileTypes: true });
+      for (const v of vols) {
+        if (v.isDirectory() || v.isSymbolicLink())
+          drives.push({ label: v.name, path: `/Volumes/${v.name}` });
+      }
+    } catch { /* /Volumes unavailable */ }
+
+  // ── Linux ─────────────────────────────────────────────────────────────────
+  } else {
+    drives.push({ label: '/ (Root)', path: '/' });
+
+    // Network mounts from /proc/mounts (CIFS=Windows shares, NFS, SSHFS, …)
+    const NET_FS = new Set(['cifs', 'smbfs', 'nfs', 'nfs4', 'fuse.sshfs', 'davfs', 'fuse.davfs2', 'glusterfs']);
+    try {
+      const mounts = await fs.promises.readFile('/proc/mounts', 'utf8');
+      for (const line of mounts.split('\n')) {
+        const [, mountpoint, fstype] = line.split(' ');
+        if (!mountpoint || !NET_FS.has(fstype)) continue;
+        if (mountpoint === '/') continue;
+        const name = path.basename(mountpoint);
+        drives.push({ label: `${name} \u2014 ${fstype}`, path: mountpoint });
+      }
+    } catch { /* /proc/mounts not available */ }
+
+    // Removable/USB media from standard desktop mount locations
+    const bases = ['/media', '/mnt', '/run/media'];
+    for (const base of bases) {
+      let top;
+      try { top = await fs.promises.readdir(base, { withFileTypes: true }); }
+      catch { continue; }
+      for (const entry of top) {
+        if (!entry.isDirectory()) continue;
+        const p = path.join(base, entry.name);
+        if (base !== '/mnt') {
+          // /media/<user>/ — list one level deeper (per-user mounts)
+          try {
+            const sub = await fs.promises.readdir(p, { withFileTypes: true });
+            for (const s of sub) {
+              if (s.isDirectory())
+                drives.push({ label: s.name, path: path.join(p, s.name) });
+            }
+          } catch { /* skip */ }
+        } else {
+          drives.push({ label: entry.name, path: p });
+        }
+      }
+    }
+  }
+
+  // De-duplicate by path
+  const seen = new Set();
+  return drives.filter(d => {
+    if (seen.has(d.path)) return false;
+    seen.add(d.path);
+    return true;
+  });
+}
+
 /**
  * Build and return the Express application.
  * The `db` instance must already be open and initialised.
@@ -348,50 +466,8 @@ function createApp(db) {
 
   /** List available root volumes / drives */
   app.get('/api/fs/drives', async (_req, res) => {
-    const drives = [];
     try {
-      if (process.platform === 'win32') {
-        // Check A–Z; skip inaccessible drives silently
-        for (let c = 65; c <= 90; c++) {
-          const p = `${String.fromCharCode(c)}:\\`;
-          try { await fs.promises.access(p, fs.constants.R_OK); drives.push({ label: `${String.fromCharCode(c)}:`, path: p }); }
-          catch { /* not present */ }
-        }
-      } else if (process.platform === 'darwin') {
-        drives.push({ label: '/', path: '/' });
-        try {
-          const vols = await fs.promises.readdir('/Volumes', { withFileTypes: true });
-          for (const v of vols) {
-            if (v.isDirectory() || v.isSymbolicLink())
-              drives.push({ label: v.name, path: `/Volumes/${v.name}` });
-          }
-        } catch { /* /Volumes unavailable */ }
-      } else {
-        // Linux: root + common removable-media locations
-        drives.push({ label: '/ (Root)', path: '/' });
-        const bases = ['/media', '/mnt', '/run/media'];
-        for (const base of bases) {
-          let top;
-          try { top = await fs.promises.readdir(base, { withFileTypes: true }); }
-          catch { continue; }
-          for (const entry of top) {
-            if (!entry.isDirectory()) continue;
-            const p = path.join(base, entry.name);
-            // /media/<user>/ contains per-user mounts — list one level deeper
-            if (base !== '/mnt') {
-              try {
-                const sub = await fs.promises.readdir(p, { withFileTypes: true });
-                for (const s of sub) {
-                  if (s.isDirectory())
-                    drives.push({ label: s.name, path: path.join(p, s.name) });
-                }
-              } catch { /* skip */ }
-            } else {
-              drives.push({ label: entry.name, path: p });
-            }
-          }
-        }
-      }
+      const drives = await listDrives();
       res.json(drives);
     } catch (err) {
       logger.error(err.message);

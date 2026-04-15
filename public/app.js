@@ -442,9 +442,14 @@ const fsBrowser = {
       this._currentPath = null;
       const entries = document.getElementById('fs-entries');
       entries.innerHTML = drives.length
-        ? drives.map(d =>
-            `<div class="fs-entry" data-path="${escHtml(d.path)}">\u{1F4BE} ${escHtml(d.label)}</div>`
-          ).join('')
+        ? drives.map(d => {
+            const lbl = d.label || d.path;
+            const icon = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? '\uD83D\uDD17'
+                       : /usb|removable/i.test(lbl)                        ? '\uD83D\uDCBE'
+                       : /cd|dvd/i.test(lbl)                               ? '\uD83D\uDCBF'
+                       : '\uD83D\uDDB4';
+            return `<div class="fs-entry" data-path="${escHtml(d.path)}">${icon} ${escHtml(lbl)}</div>`;
+          }).join('')
         : `<div class="fs-entry-empty">${escHtml(t('fs.no_drives'))}</div>`;
       document.getElementById('fs-crumb').textContent = t('fs.drives');
       document.getElementById('btn-select-dir').disabled = true;

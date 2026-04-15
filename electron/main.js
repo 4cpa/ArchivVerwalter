@@ -3,12 +3,13 @@
 /**
  * Electron entry point.
  *
- * Strategy: run the Express HTTP server inside the main process (no child
- * process needed), then open a BrowserWindow that loads the local URL.
- * This works both in development (electron .) and in the packaged installer.
- *
- * Environment variables are set BEFORE any project modules are required so
- * that logger.js, db.js etc. pick up the correct paths at module-load time.
+ * Start-up strategy (fast path):
+ *   1. Acquire single-instance lock — quit immediately if another instance runs.
+ *   2. Create the BrowserWindow RIGHT AWAY with an inline loading screen so the
+ *      user sees a responsive window within ~200 ms, long before SQLite/Express
+ *      have finished initialising.
+ *   3. Boot the Express server in the background.
+ *   4. Once the server is ready, navigate the already-visible window to the app.
  */
 
 const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
@@ -16,17 +17,15 @@ const path = require('path');
 const http = require('http');
 
 // ── Single-instance lock ──────────────────────────────────────────────────
-// Prevents a second instance from starting when the app is already running
-// (e.g. after a Windows auto-start or a double-click during update).
-// The second instance immediately quits; the first instance brings its window
-// to the foreground so the user's click still feels responsive.
+// Prevents a second instance from starting (e.g. after Windows auto-start or
+// double-click during update), which would cause an EADDRINUSE crash.
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 }
 
 const isDev = !app.isPackaged;
-const PORT  = parseInt(process.env.PORT, 10) || 4041; // separate from npm start (4040) and Prognostic (3000)
+const PORT  = parseInt(process.env.PORT, 10) || 4041;
 const HOST  = '127.0.0.1';
 const URL   = `http://${HOST}:${PORT}`;
 
@@ -34,23 +33,49 @@ let mainWindow = null;
 let httpServer = null;
 let db         = null;
 
+// ── Inline loading page ───────────────────────────────────────────────────
+// Shown immediately while the Express server is still starting up.
+// Matches the sidebar colour so there is no jarring colour flash.
+const LOADING_HTML = `data:text/html,<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#1a1f2e;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    height:100vh;gap:20px;
+    font-family:system-ui,-apple-system,sans-serif;
+    color:rgba(255,255,255,.7);
+  }
+  .logo{font-size:2.8rem;font-weight:900;letter-spacing:-2px;color:#fff}
+  .sub{font-size:.85rem;color:rgba(255,255,255,.45);letter-spacing:.5px}
+  .bar{width:180px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+  .fill{height:100%;width:40%;background:#4a9eff;border-radius:2px;
+        animation:slide 1.2s ease-in-out infinite}
+  @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+</style>
+</head>
+<body>
+  <div class="logo">@4</div>
+  <div class="sub">ArchivVerwalter startet&nbsp;&hellip;</div>
+  <div class="bar"><div class="fill"></div></div>
+</body>
+</html>`;
+
 // ── Server startup ────────────────────────────────────────────────────────
 async function startServer() {
   const userData = app.getPath('userData');
 
-  // Must be set BEFORE requiring project modules (logger reads LOG_DIR at load time)
   process.env.LOG_DIR    = path.join(userData, 'logs');
   process.env.DB_PATH    = path.join(userData, 'archivverwalter.db');
   process.env.PORT       = String(PORT);
   process.env.HOST       = HOST;
-
-  // In a packaged app, static files are placed in resources/public via extraResources.
-  // In development, they live in public/ relative to the project root.
   process.env.PUBLIC_DIR = isDev
     ? path.join(__dirname, '..', 'public')
     : path.join(process.resourcesPath, 'public');
 
-  // Lazy-require so env vars are already set when modules initialise
   const Database  = require('../src/db');
   const createApp = require('../src/server');
 
@@ -74,7 +99,8 @@ function createWindow() {
     minWidth:        900,
     minHeight:       600,
     title:           'ArchivVerwalter',
-    backgroundColor: '#1a1f2e',   // matches sidebar colour → no white flash
+    backgroundColor: '#1a1f2e',
+    show:            false,          // reveal only after first paint (avoids flash)
     webPreferences: {
       nodeIntegration:  false,
       contextIsolation: true,
@@ -82,27 +108,22 @@ function createWindow() {
     },
   });
 
-  // Open <a target="_blank"> links in the OS default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
 
-  mainWindow.loadURL(URL);
-
-  // Open DevTools in development
-  if (isDev && process.env.DEVTOOLS) {
-    mainWindow.webContents.openDevTools();
-  }
-
+  mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.on('closed', () => { mainWindow = null; });
 
-  // Remove menu bar in production (app has its own UI)
   if (!isDev) Menu.setApplicationMenu(null);
+
+  // Load the inline loading screen immediately — window becomes visible fast.
+  mainWindow.loadURL(LOADING_HTML);
 }
 
 // ── Wait for server to be ready ───────────────────────────────────────────
-function waitForServer(retries = 30, delay = 300) {
+function waitForServer(retries = 40, delay = 200) {
   return new Promise((resolve, reject) => {
     function attempt(n) {
       http.get(`${URL}/api/health`, (res) => {
@@ -120,23 +141,35 @@ function waitForServer(retries = 30, delay = 300) {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // 1. Show the window with the loading page immediately
+  createWindow();
+
   try {
+    // 2. Boot server in background while window is already visible
     await startServer();
     await waitForServer();
-    createWindow();
+
+    // 3. Navigate to the real app
+    if (mainWindow) {
+      mainWindow.loadURL(URL);
+
+      if (isDev && process.env.DEVTOOLS) {
+        mainWindow.webContents.openDevTools();
+      }
+    }
   } catch (err) {
     const isPortBusy = err.code === 'EADDRINUSE';
-    const title   = 'ArchivVerwalter — Startup Error';
+    const title   = 'ArchivVerwalter \u2014 Startup Error';
     const message = isPortBusy
-      ? `Port ${PORT} is already in use.\n\nA previous ArchivVerwalter instance may still be running. Please close it via the Windows Task Manager (look for "ArchivVerwalter" or "electron.exe") and try again.`
+      ? `Port ${PORT} is already in use.\n\nA previous ArchivVerwalter instance may still be running. Please close it via the Windows Task Manager (look for \u201cArchivVerwalter\u201d or \u201celectron.exe\u201d) and try again.`
       : err.message;
     dialog.showErrorBox(title, message);
     app.quit();
   }
 });
 
+// Bring existing window to front when a second instance tries to launch
 app.on('second-instance', () => {
-  // A second launch was attempted — focus the existing window instead
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
@@ -144,16 +177,20 @@ app.on('second-instance', () => {
 });
 
 app.on('window-all-closed', () => {
-  // On macOS, apps stay in the dock until explicitly quit
   if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
-  // Re-create window when dock icon is clicked (macOS)
   if (!mainWindow) createWindow();
 });
 
 app.on('before-quit', async () => {
   if (httpServer) httpServer.close();
-  if (db) await db.close().catch(() => {});
+  // Close DB with a hard timeout so the process never hangs "not responding"
+  if (db) {
+    await Promise.race([
+      db.close().catch(() => {}),
+      new Promise(r => setTimeout(r, 1500)),
+    ]);
+  }
 });
