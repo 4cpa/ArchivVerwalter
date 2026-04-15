@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.6] — 2026-04-15
+
 ### Fixed
 - Laufwerksbrowser komplett als Modal-Overlay neu gebaut — war vorher als 160 px
   hohes Inline-Panel in der Sidebar eingebettet; Laufwerke und Ordner waren kaum
