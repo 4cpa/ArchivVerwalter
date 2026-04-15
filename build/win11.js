@@ -17,8 +17,7 @@ module.exports = {
 
   win: {
     target: [
-      { target: 'nsis', arch: ['x64'] },
-      { target: 'nsis', arch: ['arm64'] }
+      { target: 'nsis', arch: ['x64', 'arm64'] }
     ],
     legalTrademarks: pkg.author.name,
     // asInvoker: no UAC prompt, no SmartScreen admin-level scan delay
