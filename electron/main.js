@@ -118,7 +118,6 @@ function createWindow() {
     minHeight:       600,
     title:           'ArchivVerwalter',
     backgroundColor: '#1a1f2e',
-    show:            false,          // reveal only after first paint (avoids flash)
     webPreferences: {
       nodeIntegration:  false,
       contextIsolation: true,
@@ -131,7 +130,6 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.on('closed', () => { mainWindow = null; });
 
   if (!isDev) Menu.setApplicationMenu(null);

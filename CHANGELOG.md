@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.3] — 2026-04-15
 
+### Fixed
+- Windows drive browser: replaced WMIC-primary detection (locale-fragile, missed drives)
+  with parallel A–Z `Promise.all` access check — all attached drives now reliably listed
+- Windows startup: removed `show:false` / `ready-to-show` delay from BrowserWindow —
+  branded loading screen appears immediately on double-click without waiting for paint event
+
 ---
 
 ## [1.2.2] — 2026-04-15

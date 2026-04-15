@@ -60,33 +60,36 @@ async function listDrives() {
 
   // ── Windows ──────────────────────────────────────────────────────────────
   if (process.platform === 'win32') {
-    const out = await runCmd(
-      'wmic logicaldisk get Caption,DriveType,VolumeName /format:csv',
-      { shell: true }
-    );
-    const parsed = [];
-    for (const line of out.split(/\r?\n/)) {
-      const parts = line.split(',');
-      // CSV header: Node,Caption,DriveType,VolumeName
-      if (parts.length < 4 || !parts[1] || !/^[A-Z]:$/.test(parts[1].trim())) continue;
-      const caption    = parts[1].trim();
-      const driveType  = parseInt(parts[2].trim(), 10);
-      const volumeName = parts[3].trim();
-      const typeTag    = WIN_DRIVE_TYPES[driveType];
-      const tag        = typeTag !== undefined ? typeTag : '';
-      const label      = [caption, volumeName, tag].filter(Boolean).join(' \u2014 ');
-      parsed.push({ label, path: `${caption}\\`, type: driveType });
-    }
+    // Parallel A-Z check — reliable on all Windows versions/locales
+    const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
+    const present = (await Promise.all(
+      letters.map(async l => {
+        try { await fs.promises.access(`${l}:\\`, fs.constants.R_OK); return l; }
+        catch { return null; }
+      })
+    )).filter(Boolean);
 
-    // Fallback: A-Z scan if WMIC returned nothing (e.g. restricted environments)
-    if (parsed.length === 0) {
-      for (let c = 65; c <= 90; c++) {
-        const p = `${String.fromCharCode(c)}:\\`;
-        try { await fs.promises.access(p, fs.constants.R_OK); parsed.push({ label: `${String.fromCharCode(c)}:`, path: p }); }
-        catch { /* not present */ }
+    // Best-effort PowerShell labels and drive types
+    const labelMap = {};
+    try {
+      const out = await runCmd(
+        'powershell -NoProfile -NonInteractive -Command "' +
+        'Get-WmiObject Win32_LogicalDisk | ' +
+        'ForEach-Object { $_.DeviceID[0] + \'|\' + $_.DriveType + \'|\' + $_.VolumeName }"',
+        { shell: true }
+      );
+      for (const line of out.split(/\r?\n/)) {
+        const [l, type, vol] = line.trim().split('|');
+        if (!l || l.length !== 1) continue;
+        const typeTag = WIN_DRIVE_TYPES[parseInt(type, 10)] ?? '';
+        labelMap[l.toUpperCase()] = [vol?.trim(), typeTag].filter(Boolean).join(' \u2014 ');
       }
+    } catch { /* labels are optional */ }
+
+    for (const l of present) {
+      const extra = labelMap[l] ?? '';
+      drives.push({ label: extra ? `${l}: \u2014 ${extra}` : `${l}:`, path: `${l}:\\` });
     }
-    drives.push(...parsed);
 
   // ── macOS ─────────────────────────────────────────────────────────────────
   } else if (process.platform === 'darwin') {
