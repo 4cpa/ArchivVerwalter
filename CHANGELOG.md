@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.7] — 2026-04-15
+
 ### Fixed
 - Laufwerkserkennung hängt nicht mehr: `fs.promises.access()` für A–Z-Buchstabenprüfung
   (Windows) hatte keinen Timeout — eine einzige nicht erreichbare Netzlaufwerk-Zuordnung
