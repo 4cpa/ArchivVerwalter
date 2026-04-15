@@ -51,8 +51,11 @@ function createApp(db) {
     next();
   });
 
-  // Serve the web UI
-  app.use(express.static(path.join(__dirname, '..', 'public')));
+  // Serve the web UI.
+  // PUBLIC_DIR is overridden by electron/main.js when running as a packaged app
+  // so that static files are read from outside the asar archive.
+  const publicDir = process.env.PUBLIC_DIR || path.join(__dirname, '..', 'public');
+  app.use(express.static(publicDir));
 
   // ── Health / Monitoring ──────────────────────────────────────────────────────
   app.get('/api/health', async (_req, res) => {

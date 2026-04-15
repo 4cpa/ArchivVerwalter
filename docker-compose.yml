@@ -1,0 +1,42 @@
+services:
+  archivverwalter:
+    build: .
+    image: archivverwalter:latest
+    container_name: archivverwalter
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persistent database and logs (Docker-managed volumes)
+      - av_data:/app/data
+      - av_logs:/app/logs
+
+      # ── Archive directories ───────────────────────────────────────────────
+      # Mount your local archive folders here as read-only.
+      # After mounting, add them in the app UI using the container path.
+      #
+      # Example:
+      #   - /home/user/Fotos:/archives/Fotos:ro
+      #   - /mnt/nas/Dokumente:/archives/Dokumente:ro
+      #
+      # Then enter "/archives/Fotos" as the path when adding an archive.
+      # - /path/to/your/archive:/archives/name:ro
+
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      # DB_PATH and LOG_DIR default to /app/data and /app/logs inside the container
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  av_data:
+    driver: local
+  av_logs:
+    driver: local

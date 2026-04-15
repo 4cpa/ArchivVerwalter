@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Electron desktop app: Express server runs inside the main process; BrowserWindow loads localhost
+- electron-builder packaging: Windows NSIS installer (.exe), macOS DMG (.dmg), Linux AppImage + .deb
+- Docker support: multi-stage Alpine image with HEALTHCHECK
+- docker-compose.yml with persistent volumes and read-only archive mount examples
+- `npm run dist` / `dist:win` / `dist:mac` / `dist:linux` build commands
+- `npm run electron` to launch desktop app from source
+- `npm run electron:rebuild` to rebuild native modules for the current Electron version
+
 ---
 
 ## [1.0.0] — 2026-04-15
