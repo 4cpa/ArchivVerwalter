@@ -20,7 +20,7 @@ module.exports = {
       { target: 'nsis', arch: ['x64'] },
       { target: 'nsis', arch: ['arm64'] }
     ],
-    publisherName: pkg.author.name,
+    legalTrademarks: pkg.author.name,
     // Triggers UAC prompt → fixes "run as administrator" issues on Win 10/11
     requestedExecutionLevel: 'requireAdministrator',
     icon: 'electron/icons/icon.ico',

@@ -17,11 +17,10 @@ module.exports = {
     target: [
       { target: 'nsis', arch: ['x64'] }
     ],
-    publisherName: pkg.author.name,
+    legalTrademarks: pkg.author.name,
     // Triggers UAC prompt → fixes "run as administrator" issues on Win 10/11
     requestedExecutionLevel: 'requireAdministrator',
     icon: 'electron/icons/icon.ico',
-    // Signed file meta helps SmartScreen reputation
     verifyUpdateCodeSignature: false,
     artifactName: '${productName}-Setup-${version}-win10-x64.${ext}'
   },
