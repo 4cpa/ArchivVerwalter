@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Laufwerk-Icons (HDD/USB/NET/CD) nicht dargestellt: Emoji U+1F5B4 🖴 und
+  Verwandte sind in den meisten Windows-Emoji-Fonts nicht enthalten und werden
+  als kaputtes Platzhalter-Zeichen gerendert. Ersetzt durch farbige Text-Badges
+  (`HDD` blau / `USB` grün / `NET` orange / `CD` violett) — keine Font-
+  Abhängigkeit, funktioniert in jedem Chromium/Windows zuverlässig.
+
 ---
 
 ## [1.2.8] — 2026-04-15

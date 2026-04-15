@@ -457,11 +457,15 @@ const fsBrowser = {
       }
       document.getElementById('fs-entries').innerHTML = drives.map(d => {
         const lbl  = d.label || d.path;
-        const icon = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? '\uD83D\uDD17'
-                   : /usb|removable/i.test(lbl)                        ? '\uD83D\uDCBE'
-                   : /cd|dvd/i.test(lbl)                               ? '\uD83D\uDCBF'
-                   : '\uD83D\uDDB4';
-        return `<div class="fs-entry fs-entry-drive" data-path="${escHtml(d.path)}">${icon} ${escHtml(lbl)}</div>`;
+        // Use text badges instead of emoji — emoji rendering is unreliable
+        // across Windows font configurations (e.g. U+1F5B4 🖴 is missing from
+        // most Windows emoji fonts and renders as a broken placeholder).
+        const type = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? 'net'
+                   : /usb|removable/i.test(lbl)                        ? 'usb'
+                   : /cd|dvd/i.test(lbl)                               ? 'cd'
+                   : 'hdd';
+        const badge = { hdd: 'HDD', usb: 'USB', net: 'NET', cd: 'CD' }[type];
+        return `<div class="fs-entry fs-entry-drive" data-path="${escHtml(d.path)}"><span class="fs-type-badge fs-type-${type}">${badge}</span> ${escHtml(lbl)}</div>`;
       }).join('');
     }).catch(err => {
       document.getElementById('fs-entries').innerHTML =

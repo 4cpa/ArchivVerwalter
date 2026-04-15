@@ -583,7 +583,24 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   user-select: none;
 }
 .fs-entry:hover  { background: rgba(74,158,255,.22); color: #fff; }
-.fs-entry-drive  { font-weight: 500; padding: 9px 12px; font-size: .85rem; }
+.fs-entry-drive  { font-weight: 500; padding: 9px 12px; font-size: .85rem; display: flex; align-items: center; gap: 8px; }
+
+/* Drive-type badges — plain text, no emoji dependency */
+.fs-type-badge {
+  display: inline-block;
+  font-size: .58rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: .4px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1.6;
+}
+.fs-type-hdd { background: rgba(74,158,255,.2);  color: #7ec8ff; border: 1px solid rgba(74,158,255,.35); }
+.fs-type-usb { background: rgba(39,174,96,.2);   color: #5ddba1; border: 1px solid rgba(39,174,96,.35); }
+.fs-type-net { background: rgba(243,156,18,.2);  color: #f7c05a; border: 1px solid rgba(243,156,18,.35); }
+.fs-type-cd  { background: rgba(155,89,182,.2);  color: #c79df0; border: 1px solid rgba(155,89,182,.35); }
 .fs-entry-up     { color: rgba(255,255,255,.42); font-style: italic; }
 .fs-entry-empty  { padding: 28px 12px; font-size: .8rem; color: rgba(255,255,255,.3); text-align: center; }
 
