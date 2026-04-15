@@ -72,8 +72,10 @@ const TRANSLATIONS = {
     'files.deselect_all':    'Auswahl aufheben',
     'files.bulk_del_title':  'Dateien l\u00f6schen?',
     'files.bulk_del_body':   '{count} Datei(en) unwiderruflich von der Festplatte l\u00f6schen?',
-    'files.bulk_del_done':   '{count} Datei(en) gel\u00f6scht',
-    'files.bulk_del_errors': '{errors} Fehler beim L\u00f6schen',
+    'files.bulk_del_done':     '{count} Datei(en) gel\u00f6scht',
+    'files.bulk_del_errors':   '{errors} Fehler beim L\u00f6schen',
+    'files.bulk_copy_paths':   'Pfade kopieren',
+    'files.bulk_copy_done':    '{count} Pfad(e) kopiert',
 
     // Duplicates view
     'dups.title':        'Duplikate',
@@ -185,8 +187,10 @@ const TRANSLATIONS = {
     'files.deselect_all':    'Clear selection',
     'files.bulk_del_title':  'Delete files?',
     'files.bulk_del_body':   'Permanently delete {count} file(s) from disk?',
-    'files.bulk_del_done':   '{count} file(s) deleted',
-    'files.bulk_del_errors': '{errors} error(s) during deletion',
+    'files.bulk_del_done':     '{count} file(s) deleted',
+    'files.bulk_del_errors':   '{errors} error(s) during deletion',
+    'files.bulk_copy_paths':   'Copy paths',
+    'files.bulk_copy_done':    '{count} path(s) copied',
 
     'dups.title':        'Duplicates',
     'dups.none':         'No duplicates found.',
@@ -295,8 +299,10 @@ const TRANSLATIONS = {
     'files.deselect_all':    'D\u00e9s\u00e9lectionner',
     'files.bulk_del_title':  'Supprimer les fichiers\u00a0?',
     'files.bulk_del_body':   'Supprimer d\u00e9finitivement {count} fichier(s) du disque\u00a0?',
-    'files.bulk_del_done':   '{count} fichier(s) supprim\u00e9(s)',
-    'files.bulk_del_errors': '{errors} erreur(s) lors de la suppression',
+    'files.bulk_del_done':     '{count} fichier(s) supprim\u00e9(s)',
+    'files.bulk_del_errors':   '{errors} erreur(s) lors de la suppression',
+    'files.bulk_copy_paths':   'Copier les chemins',
+    'files.bulk_copy_done':    '{count} chemin(s) copi\u00e9(s)',
 
     'dups.title':        'Doublons',
     'dups.none':         'Aucun doublon trouv\u00e9.',

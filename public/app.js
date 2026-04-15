@@ -309,15 +309,18 @@ function renderDuplicates(groups) {
       const isKeeper = fi === 0;
       return `
         <tr class="${isKeeper ? 'keeper' : ''}" data-group="${realGi}">
-          <td>${isKeeper
-            ? `<span style="color:var(--success)">${escHtml(t('dups.keeping'))}</span>`
+          <td class="dup-col-action">${isKeeper
+            ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
             : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`
           }</td>
-          <td class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</td>
+          <td class="dup-col-name">
+            <div class="dup-file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</div>
+            <div class="dup-file-path">${escHtml(f.path)}</div>
+          </td>
           <td>${escHtml(f.archive_name)}</td>
-          <td>${formatSize(f.size)}</td>
-          <td>${formatDate(f.modified_at)}</td>
-          <td>
+          <td class="dup-col-num">${formatSize(f.size)}</td>
+          <td class="dup-col-num">${formatDate(f.modified_at)}</td>
+          <td class="dup-col-dl">
             <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
                title="${escHtml(t('dups.dl_title'))}" download>\u2193</a>
           </td>
@@ -327,14 +330,26 @@ function renderDuplicates(groups) {
     return `
       <div class="dup-group" id="dup-group-${realGi}">
         <div class="dup-group-header">
-          <span>${escHtml(t('dups.count', { count: g.count }))}</span>
+          <span class="dup-group-title">${escHtml(t('dups.count', { count: g.count }))}</span>
           <span class="dup-hash">${g.hash.slice(0, 16)}\u2026</span>
           <button class="btn btn-sm btn-danger"
                   data-action="resolve-all" data-group="${realGi}">
             ${escHtml(t('dups.resolve_btn'))}
           </button>
         </div>
-        <table><tbody>${rows}</tbody></table>
+        <table>
+          <thead>
+            <tr>
+              <th class="dup-col-action"></th>
+              <th>${escHtml(t('files.col_name'))}</th>
+              <th>${escHtml(t('files.col_archive'))}</th>
+              <th class="dup-col-num">${escHtml(t('files.col_size'))}</th>
+              <th class="dup-col-num">${escHtml(t('files.col_modified'))}</th>
+              <th class="dup-col-dl"></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>`;
   }).join('');
 
@@ -500,8 +515,47 @@ function rerender() {
 }
 
 /* ── Filesystem browser modal ─────────────────────────────────────────────── */
+
+/** Build a clickable breadcrumb HTML string for the given absolute path. */
+function buildCrumbHtml(fullPath) {
+  const isWin = /^[A-Za-z]:[\\\/]/.test(fullPath);
+  const sep   = isWin ? '\\' : '/';
+
+  let parts; // Array of { label, path }
+  if (isWin) {
+    const drive = fullPath.slice(0, 3).replace('/', '\\'); // e.g. "C:\"
+    const segs  = fullPath.slice(3).split(/[\\/]/).filter(Boolean);
+    parts = [
+      { label: drive, path: drive },
+      ...segs.map((s, i) => ({
+        label: s,
+        path:  drive + segs.slice(0, i + 1).join('\\'),
+      })),
+    ];
+  } else {
+    const segs = fullPath.split('/').filter(Boolean);
+    parts = [
+      { label: '/', path: '/' },
+      ...segs.map((s, i) => ({
+        label: s,
+        path:  '/' + segs.slice(0, i + 1).join('/'),
+      })),
+    ];
+  }
+
+  return parts.map((p, i) => {
+    if (i < parts.length - 1) {
+      const escapedSep = escHtml(sep);
+      return `<a class="crumb-link" data-path="${escHtml(p.path)}">${escHtml(p.label)}</a>`
+           + `<span class="crumb-sep">${escapedSep}</span>`;
+    }
+    return `<span class="crumb-cur">${escHtml(p.label)}</span>`;
+  }).join('');
+}
+
 const fsBrowser = {
   _currentPath: null,
+  _parentPath:  null,
 
   /** Open the modal and load the drives list. */
   open() {
@@ -512,9 +566,11 @@ const fsBrowser = {
   /** Go back to the root drives list without closing the modal. */
   showDrives() {
     this._currentPath = null;
+    this._parentPath  = null;
     document.getElementById('fs-crumb').textContent = t('fs.drives');
     document.getElementById('fs-selected-path').textContent = '';
     document.getElementById('btn-select-dir').disabled = true;
+    document.getElementById('fs-btn-up').disabled = true;
     document.getElementById('fs-entries').innerHTML =
       `<div class="fs-entry-empty">${escHtml(t('fs.loading'))}</div>`;
 
@@ -546,12 +602,15 @@ const fsBrowser = {
   close() {
     document.getElementById('fs-modal').classList.add('hidden');
     this._currentPath = null;
+    this._parentPath  = null;
   },
 
   /** Navigate into a directory, update the modal and the path input. */
   async navigate(dirPath) {
     this._currentPath = null;
+    this._parentPath  = null;
     document.getElementById('btn-select-dir').disabled = true;
+    document.getElementById('fs-btn-up').disabled = true;
     document.getElementById('fs-crumb').textContent = dirPath;
     document.getElementById('fs-entries').innerHTML =
       `<div class="fs-entry-empty">${escHtml(t('fs.loading'))}</div>`;
@@ -559,15 +618,16 @@ const fsBrowser = {
     try {
       const data = await api.browse(dirPath);
       this._currentPath = data.path;
+      this._parentPath  = (data.parent !== null && data.parent !== undefined)
+                          ? data.parent : null;
 
-      document.getElementById('fs-crumb').textContent       = data.path;
+      document.getElementById('fs-crumb').innerHTML      = buildCrumbHtml(data.path);
       document.getElementById('fs-selected-path').textContent = data.path;
-      document.getElementById('btn-select-dir').disabled    = false;
-      document.getElementById('archive-path').value         = data.path;
+      document.getElementById('btn-select-dir').disabled  = false;
+      document.getElementById('fs-btn-up').disabled       = (this._parentPath === null);
+      document.getElementById('archive-path').value       = data.path;
 
       const rows = [];
-      if (data.parent !== null && data.parent !== undefined)
-        rows.push(`<div class="fs-entry fs-entry-up" data-path="${escHtml(data.parent)}">\u2191 ${escHtml(t('fs.up'))}</div>`);
       if (!data.dirs.length)
         rows.push(`<div class="fs-entry-empty">${escHtml(t('fs.no_dirs'))}</div>`);
       else
@@ -617,6 +677,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 🖴 button inside modal header — go back to drives list
   document.getElementById('fs-btn-drives').addEventListener('click', () => {
     fsBrowser.showDrives();
+  });
+
+  // ↑ button inside modal header — go up one level
+  document.getElementById('fs-btn-up').addEventListener('click', () => {
+    if (fsBrowser._parentPath) fsBrowser.navigate(fsBrowser._parentPath);
+  });
+
+  // Breadcrumb segment clicks — jump to any ancestor directly
+  document.getElementById('fs-crumb').addEventListener('click', (e) => {
+    const link = e.target.closest('.crumb-link');
+    if (link && link.dataset.path) fsBrowser.navigate(link.dataset.path);
+  });
+
+  // Backspace key while modal is open → go up one level (not inside input fields)
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('fs-modal').classList.contains('hidden')) return;
+    if (e.key !== 'Backspace') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+    if (fsBrowser._parentPath) fsBrowser.navigate(fsBrowser._parentPath);
+    else if (!fsBrowser._currentPath) { /* already at drives */ }
+    else fsBrowser.showDrives();
   });
 
   // ✕ button inside modal header
@@ -896,6 +978,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-deselect-all').addEventListener('click', () => {
     state.selectedFiles.clear();
     renderFiles();
+  });
+
+  // ── Bulk copy paths ───────────────────────────────────────────────────────
+  document.getElementById('btn-bulk-copy-paths').addEventListener('click', async () => {
+    const ids = [...state.selectedFiles];
+    if (!ids.length) return;
+    const paths = state.files
+      .filter(f => state.selectedFiles.has(f.id))
+      .map(f => f.path)
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(paths);
+      const count = state.files.filter(f => state.selectedFiles.has(f.id)).length;
+      toast(t('files.bulk_copy_done', { count }), 'success');
+    } catch {
+      toast(t('files.copy_failed'), 'error');
+    }
   });
 
   // ── Bulk delete ───────────────────────────────────────────────────────────

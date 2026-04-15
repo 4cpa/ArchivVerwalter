@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.12] — 2026-04-15
+
+### Added
+- Duplikate-Ansicht: Tabellenkopfzeile (Name / Archiv / Grösse / Geändert) in jeder
+  Duplikatgruppe; Dateiname und vollständiger Pfad werden pro Zeile angezeigt; Gruppen-
+  Karten haben mehr visuellen Abstand und sind leichter zu lesen.
+- Mehrfachauswahl in der Datei-Liste: neue Schaltfläche „Pfade kopieren" in der
+  Batch-Aktionsleiste kopiert die Pfade aller sichtbar ausgewählten Dateien in die
+  Zwischenablage (eine Zeile pro Pfad).
+- Archiv-Quellennavigation: ↑-Schaltfläche im Modal-Header springt direkt eine Ebene
+  hoch; Breadcrumb-Segmente sind klickbar und erlauben den Sprung zu beliebigen
+  Vorfahren-Ordnern; Backspace-Taste navigiert ebenfalls eine Ebene hoch (sofern kein
+  Eingabefeld fokussiert ist).
+- Startbildschirm (Windows 11): Fenster wird erst sichtbar, nachdem der dunkle
+  Ladebildschirm vollständig gerendert ist (`show:false` + `ready-to-show`), sodass
+  kein weisser Flash mehr vor der Ladeanimation erscheint.
+
+---
+
 ## [1.2.11] — 2026-04-15
 
 ### Added

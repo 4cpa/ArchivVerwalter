@@ -118,12 +118,19 @@ function createWindow() {
     minHeight:       600,
     title:           'ArchivVerwalter',
     backgroundColor: '#1a1f2e',
+    // show:false keeps the window hidden until Chromium has fully painted the
+    // loading screen — eliminates the white / blank flash on Windows 11.
+    show:            false,
     webPreferences: {
       nodeIntegration:  false,
       contextIsolation: true,
       sandbox:          true,
     },
   });
+
+  // Reveal the window only after the first paint so the user always sees the
+  // dark loading screen and never a blank white frame.
+  mainWindow.once('ready-to-show', () => mainWindow.show());
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
