@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] — 2026-04-15
 
+### Added
+- Windows: wmic logicaldisk replaces slow A–Z scan — shows USB, Netzwerk, CD/DVD labels
+- Linux: network mounts from /proc/mounts (CIFS, NFS, NFS4, SSHFS, davfs, GlusterFS)
+- Drive browser icons distinguish network / USB / local / CD
+
+### Fixed
+- Windows slow start: BrowserWindow now shows immediately with branded loading screen
+  while server boots in background (was blank for up to 9 seconds)
+- Windows "not responding": before-quit has a 1.5 s hard timeout on db.close()
+  so the process never hangs when closed via Task Manager
+
 ---
 
 ## [1.1.1] — 2026-04-15
