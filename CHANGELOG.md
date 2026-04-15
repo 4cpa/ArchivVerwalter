@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.5] — 2026-04-15
 
----
-
-## [1.2.5] — 2026-04-15
-
 ### Fixed
 - Windows CI build: upgraded `better-sqlite3` from v9 to v12 — v9 forced `/std:c++17`
   which conflicted with Electron 41's C++20 requirement, causing `C1189` compile error.
