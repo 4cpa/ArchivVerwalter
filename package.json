@@ -46,7 +46,8 @@
     "testTimeout": 30000,
     "testMatch": [
       "**/tests/**/*.test.js"
-    ]
+    ],
+    "resetModules": false
   },
   "build": {
     "appId": "ch.archivverwalter.app",

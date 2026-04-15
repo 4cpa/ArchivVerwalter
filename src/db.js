@@ -74,7 +74,11 @@ class Database {
       const result = this._db.prepare(sql).run(...params);
       return Promise.resolve({ lastID: result.lastInsertRowid, changes: result.changes });
     } catch (err) {
-      return Promise.reject(err);
+      // better-sqlite3 throws SqliteError (native addon). When Jest loads the native
+      // addon in one VM context and re-evaluates the JS wrapper in another, the thrown
+      // error fails `instanceof Error` checks (different prototype chain). Wrapping in
+      // a plain Error preserves the message while staying in the current context.
+      return Promise.reject(err instanceof Error ? err : Object.assign(new Error(err.message), { code: err.code }));
     }
   }
 

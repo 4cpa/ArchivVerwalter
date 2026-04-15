@@ -239,6 +239,13 @@ describe('POST /api/archives/:id/scan', () => {
     const res = await request(app).post('/api/archives/1/scan');
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/started/i);
+    // Wait for the background scan to finish so no dangling Promises
+    // leak into subsequent test files and cause flaky UNIQUE-constraint failures.
+    for (let i = 0; i < 50; i++) {
+      const st = await request(app).get('/api/archives/1/scan/status');
+      if (st.body.status === 'done' || st.body.status === 'idle') break;
+      await new Promise(r => setTimeout(r, 20));
+    }
   });
 });
 
@@ -248,4 +255,11 @@ describe('GET /api/archives/:id/scan/status', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('idle');
   });
+});
+
+// Allow all pending I/O callbacks from this test file to drain before
+// the next test file runs — prevents flaky UNIQUE-constraint failures
+// in db.test.js when api.test.js runs first.
+afterAll(async () => {
+  await new Promise(r => setTimeout(r, 50));
 });
