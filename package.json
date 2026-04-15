@@ -53,7 +53,7 @@
     "appId": "ch.archivverwalter.app",
     "productName": "ArchivVerwalter",
     "copyright": "Copyright © 2026",
-    "compression": "store",
+    "compression": "normal",
     "asar": true,
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**"
@@ -90,7 +90,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "ArchivVerwalter"
+      "shortcutName": "ArchivVerwalter",
+      "runAfterFinish": false
     },
     "mac": {
       "target": [

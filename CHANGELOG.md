@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Laufwerkserkennung hängt nicht mehr: `fs.promises.access()` für A–Z-Buchstabenprüfung
+  (Windows) hatte keinen Timeout — eine einzige nicht erreichbare Netzlaufwerk-Zuordnung
+  (z.B. getrenntes Z:) blockierte `Promise.all` für 30+ Sekunden und liess die
+  Laufwerksliste nie laden. Jedes Prüfung wird nun nach 1,5 s abgebrochen.
+  Gleiches gilt für alle `readdir`-Aufrufe in der Laufwerks- und Verzeichnis-API
+  (macOS/Linux: 3 s, Browse-Endpoint: 10 s).
+- NSIS-Installer: `runAfterFinish: false` gesetzt — ohne diese Option versuchte der
+  Installer, die App direkt nach Installation zu starten. Da Windows-Defender dabei
+  alle nativen Module erstmals scannt, erschien dieser erste Start als App-Absturz
+  im Installer-Fenster. Die App wird jetzt nicht mehr automatisch gestartet.
+- Installer-Kompression von `store` auf `normal` zurückgestellt — `store` erzeugt
+  eine 2–3× grössere .exe, die Defender vor dem Anzeigen des Dialogs vollständig
+  scannt. `normal` (zlib) ist der richtige Kompromiss: kleinere Datei, schnellerer
+  Dialog, akzeptable Extraktionszeit.
+
 ---
 
 ## [1.2.6] — 2026-04-15

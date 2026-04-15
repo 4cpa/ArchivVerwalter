@@ -34,6 +34,9 @@ module.exports = {
     createStartMenuShortcut: true,
     shortcutName: 'ArchivVerwalter',
     installerIcon: 'electron/icons/icon.ico',
-    uninstallerIcon: 'electron/icons/icon.ico'
+    uninstallerIcon: 'electron/icons/icon.ico',
+    // Do not auto-launch after install — avoids false "crash" if first-run
+    // takes unusually long (antivirus scan of native modules on first launch).
+    runAfterFinish: false,
   }
 };

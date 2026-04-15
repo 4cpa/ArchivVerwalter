@@ -34,7 +34,7 @@ function openWithOS(filePath) {
 
 // ── Drive / volume detection ──────────────────────────────────────────────
 
-/** DriveType codes returned by WMIC on Windows */
+/** DriveType codes returned by WMI on Windows */
 const WIN_DRIVE_TYPES = { 2: 'USB', 3: '', 4: 'Netzwerk', 5: 'CD/DVD' };
 
 /**
@@ -50,6 +50,27 @@ function runCmd(cmd, opts = {}) {
 }
 
 /**
+ * Race a Promise against a hard deadline.
+ * If the deadline fires first the returned Promise rejects with code ETIMEOUT.
+ * The original operation continues in the background but its result is ignored.
+ *
+ * Used to prevent fs.promises.access / readdir from hanging indefinitely when
+ * a drive letter is mapped to an unreachable network share (Windows can block
+ * for 30+ seconds before raising an error, causing Promise.all to stall).
+ */
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(
+        () => reject(Object.assign(new Error('I/O timeout'), { code: 'ETIMEOUT' })),
+        ms
+      )
+    ),
+  ]);
+}
+
+/**
  * Return an array of { label, path } objects for available drives/volumes.
  * Platform-aware: Windows uses WMIC for rich labels (USB/Network/Local),
  * Linux reads /proc/mounts to also catch network shares (CIFS/NFS/SSHFS),
@@ -60,12 +81,17 @@ async function listDrives() {
 
   // ── Windows ──────────────────────────────────────────────────────────────
   if (process.platform === 'win32') {
-    // Parallel A-Z check — reliable on all Windows versions/locales
+    // Parallel A-Z check — reliable on all Windows versions/locales.
+    // Each check is capped at 1.5 s: unmapped/disconnected network drive letters
+    // (e.g. a stale Z:) can block fs.promises.access for 30+ seconds on Windows,
+    // which would stall the entire Promise.all and make the drive list never load.
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
     const present = (await Promise.all(
       letters.map(async l => {
-        try { await fs.promises.access(`${l}:\\`, fs.constants.R_OK); return l; }
-        catch { return null; }
+        try {
+          await withTimeout(fs.promises.access(`${l}:\\`, fs.constants.R_OK), 1500);
+          return l;
+        } catch { return null; }
       })
     )).filter(Boolean);
 
@@ -95,12 +121,14 @@ async function listDrives() {
   } else if (process.platform === 'darwin') {
     drives.push({ label: '/ (Root)', path: '/' });
     try {
-      const vols = await fs.promises.readdir('/Volumes', { withFileTypes: true });
+      const vols = await withTimeout(
+        fs.promises.readdir('/Volumes', { withFileTypes: true }), 3000
+      );
       for (const v of vols) {
         if (v.isDirectory() || v.isSymbolicLink())
           drives.push({ label: v.name, path: `/Volumes/${v.name}` });
       }
-    } catch { /* /Volumes unavailable */ }
+    } catch { /* /Volumes unavailable or timed out */ }
 
   // ── Linux ─────────────────────────────────────────────────────────────────
   } else {
@@ -123,7 +151,7 @@ async function listDrives() {
     const bases = ['/media', '/mnt', '/run/media'];
     for (const base of bases) {
       let top;
-      try { top = await fs.promises.readdir(base, { withFileTypes: true }); }
+      try { top = await withTimeout(fs.promises.readdir(base, { withFileTypes: true }), 3000); }
       catch { continue; }
       for (const entry of top) {
         if (!entry.isDirectory()) continue;
@@ -131,7 +159,7 @@ async function listDrives() {
         if (base !== '/mnt') {
           // /media/<user>/ — list one level deeper (per-user mounts)
           try {
-            const sub = await fs.promises.readdir(p, { withFileTypes: true });
+            const sub = await withTimeout(fs.promises.readdir(p, { withFileTypes: true }), 3000);
             for (const s of sub) {
               if (s.isDirectory())
                 drives.push({ label: s.name, path: path.join(p, s.name) });
@@ -496,7 +524,10 @@ function createApp(db) {
     const parent    = parentRaw !== dirPath ? parentRaw : null; // null at FS root
 
     try {
-      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+      // 10 s cap: slow network shares can stall readdir for a very long time.
+      const entries = await withTimeout(
+        fs.promises.readdir(dirPath, { withFileTypes: true }), 10000
+      );
       const dirs = [];
       for (const e of entries) {
         if (!e.isDirectory()) continue;
@@ -506,8 +537,13 @@ function createApp(db) {
       dirs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
       res.json({ path: dirPath, parent, dirs });
     } catch (err) {
-      const status = err.code === 'EACCES' ? 403 : 404;
-      res.status(status).json({ error: err.code === 'EACCES' ? 'Permission denied' : err.message });
+      const status = err.code === 'EACCES' ? 403
+                   : err.code === 'ETIMEOUT' ? 504
+                   : 404;
+      const msg    = err.code === 'EACCES'   ? 'Zugriff verweigert'
+                   : err.code === 'ETIMEOUT' ? 'Zeitüberschreitung — Ressource nicht erreichbar'
+                   : err.message;
+      res.status(status).json({ error: msg });
     }
   });
 
