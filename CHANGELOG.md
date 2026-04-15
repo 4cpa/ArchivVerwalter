@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.0.1] — 2026-04-15
+
 ### Added
 - Electron desktop app: Express server runs inside the main process; BrowserWindow loads localhost
 - electron-builder packaging: Windows NSIS installer (.exe), macOS DMG (.dmg), Linux AppImage + .deb

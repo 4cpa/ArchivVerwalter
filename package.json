@@ -1,28 +1,28 @@
 {
   "name": "archivverwalter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Archive manager — index, deduplicate and browse file archives via web UI",
   "main": "electron/main.js",
   "license": "MIT",
   "scripts": {
-    "start":             "node index.js",
-    "dev":               "node --watch index.js",
-    "electron":          "electron .",
-    "electron:dev":      "NODE_ENV=development electron .",
-    "electron:rebuild":  "electron-builder install-app-deps",
-    "dist":              "npm run electron:rebuild && electron-builder --win --mac --linux",
-    "dist:win":          "npm run electron:rebuild && electron-builder --win",
-    "dist:mac":          "npm run electron:rebuild && electron-builder --mac",
-    "dist:linux":        "npm run electron:rebuild && electron-builder --linux",
-    "test":              "jest --runInBand --forceExit",
-    "test:watch":        "jest --watch --runInBand",
-    "test:coverage":     "jest --coverage --runInBand --forceExit",
-    "preversion":        "npm test",
-    "version":           "node scripts/changelog-stamp.js && git add CHANGELOG.md public/i18n.js",
-    "postversion":       "git push && git push --tags",
-    "release:patch":     "npm version patch -m \"chore(release): v%s\"",
-    "release:minor":     "npm version minor -m \"chore(release): v%s\"",
-    "release:major":     "npm version major -m \"chore(release): v%s\""
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "electron": "electron .",
+    "electron:dev": "NODE_ENV=development electron .",
+    "electron:rebuild": "electron-builder install-app-deps",
+    "dist": "npm run electron:rebuild && electron-builder --win --mac --linux",
+    "dist:win": "npm run electron:rebuild && electron-builder --win",
+    "dist:mac": "npm run electron:rebuild && electron-builder --mac",
+    "dist:linux": "npm run electron:rebuild && electron-builder --linux",
+    "test": "jest --runInBand --forceExit",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand --forceExit",
+    "preversion": "npm test",
+    "version": "node scripts/changelog-stamp.js && git add CHANGELOG.md public/i18n.js",
+    "postversion": "git push && git push --tags",
+    "release:patch": "npm version patch -m \"chore(release): v%s\"",
+    "release:minor": "npm version minor -m \"chore(release): v%s\"",
+    "release:major": "npm version major -m \"chore(release): v%s\""
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -37,7 +37,9 @@
   "jest": {
     "testEnvironment": "node",
     "testTimeout": 30000,
-    "testMatch": ["**/tests/**/*.test.js"]
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   },
   "build": {
     "appId": "ch.archivverwalter.app",
@@ -48,7 +50,10 @@
       "**/node_modules/sqlite3/**"
     ],
     "extraResources": [
-      { "from": "public", "to": "public" }
+      {
+        "from": "public",
+        "to": "public"
+      }
     ],
     "directories": {
       "output": "dist",
@@ -61,7 +66,14 @@
       "package.json"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }]
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -72,13 +84,31 @@
       "shortcutName": "ArchivVerwalter"
     },
     "mac": {
-      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] },
-        { "target": "deb",      "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Utility",
       "synopsis": "Archive manager — index, deduplicate and browse file archives"
