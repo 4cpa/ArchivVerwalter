@@ -35,7 +35,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   overflow: hidden;
   height: 100vh;
 }
-.sidebar-section { flex: 1; overflow-y: auto; padding: 10px; }
+.sidebar-section { flex: 1; min-height: 0; overflow-y: auto; padding: 10px; }
 .sidebar-header {
   padding: 14px 16px 12px;
   border-bottom: 1px solid rgba(255,255,255,.08);
@@ -316,7 +316,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .file-stats { font-size: .78rem; color: var(--text-muted); white-space: nowrap; }
 
 /* Table */
-.table-wrap { flex: 1; overflow: auto; }
+.table-wrap { flex: 1; min-height: 0; overflow: auto; }
 .file-table { width: 100%; border-collapse: collapse; }
 .file-table thead th {
   background: #f8f9fa;
@@ -428,7 +428,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .view-header h2 { font-size: .95rem; font-weight: 700; }
 
 /* ── Duplicates view ─────────────────────────────────────────────────────── */
-.dup-scroll { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dup-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 .dup-group {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -487,7 +487,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .dup-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
 
 /* ── Monitor view ────────────────────────────────────────────────────────── */
-.monitor-scroll { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.monitor-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px; }
 .health-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
