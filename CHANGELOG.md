@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.8] — 2026-04-15
+
 ### Fixed
 - win11-arm64 Installer: native Modul `better-sqlite3` wurde bisher mit der x64-Architektur
   des CI-Runners gebaut und in den arm64-Installer eingebettet. Beim Start auf echter
