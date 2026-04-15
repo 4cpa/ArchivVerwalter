@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArchivVerwalter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <h1>ArchivVerwalter</h1>
+        <div class="version">v1.0</div>
+      </div>
+      <div class="lang-selector">
+        <button class="lang-btn active" data-lang="de">DE</button>
+        <button class="lang-btn"        data-lang="en">EN</button>
+        <button class="lang-btn"        data-lang="fr">FR</button>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <button class="nav-btn active" data-view="files">
+        📁 <span data-i18n="nav.files">Dateien</span>
+      </button>
+      <button class="nav-btn" data-view="duplicates">
+        🔁 <span data-i18n="nav.duplicates">Duplikate</span>
+        <span id="dup-badge" class="badge"></span>
+      </button>
+      <button class="nav-btn" data-view="monitor">
+        📊 <span data-i18n="nav.monitor">Monitor</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section">
+      <div class="section-header">
+        <span data-i18n="arch.section">ARCHIVE</span>
+        <button class="btn-icon" id="btn-add-archive"
+                data-i18n-title="arch.add_title" title="Archiv hinzufügen">+</button>
+      </div>
+
+      <!-- Add-archive form -->
+      <div id="add-archive-form" class="add-form hidden">
+        <input type="text" id="archive-name"
+               data-i18n-ph="arch.name_ph"
+               placeholder="Name, z.B. Fotos 2024">
+        <input type="text" id="archive-path"
+               data-i18n-ph="arch.path_ph"
+               placeholder="Pfad, z.B. /home/user/fotos">
+        <div class="form-row">
+          <button id="btn-save-archive"   class="btn btn-primary btn-sm"
+                  data-i18n="btn.add">Hinzufügen</button>
+          <button id="btn-cancel-archive" class="btn btn-sm"
+                  data-i18n="btn.cancel">Abbrechen</button>
+        </div>
+      </div>
+
+      <ul id="archive-list" class="archive-list"></ul>
+    </div>
+  </aside>
+
+  <!-- ── Main area ─────────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ── Dateien ──────────────────────────────────────────────── -->
+    <div id="view-files" class="view active">
+      <div class="toolbar">
+        <div class="filters">
+          <input type="text" id="filter-name"
+                 data-i18n-ph="files.filter_name_ph"
+                 placeholder="Dateiname suchen …">
+          <input type="text" id="filter-ext"
+                 data-i18n-ph="files.filter_ext_ph"
+                 placeholder="Typ: pdf, jpg …">
+          <label class="checkbox-label">
+            <input type="checkbox" id="filter-dups">
+            <span data-i18n="files.filter_dups">Nur Duplikate</span>
+          </label>
+          <button class="btn btn-sm" id="btn-reset-filters"
+                  data-i18n="btn.reset">Zurücksetzen</button>
+        </div>
+        <span class="file-stats" id="file-stats"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="file-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-col="name">
+                <span data-i18n="files.col_name">Name</span>
+                <span class="sort-icon">↕</span>
+              </th>
+              <th class="sortable" data-col="ext">
+                <span data-i18n="files.col_type">Typ</span>
+                <span class="sort-icon">↕</span>
+              </th>
+              <th class="sortable" data-col="size">
+                <span data-i18n="files.col_size">Grösse</span>
+                <span class="sort-icon">↕</span>
+              </th>
+              <th><span data-i18n="files.col_archive">Archiv</span></th>
+              <th class="sortable" data-col="modified_at">
+                <span data-i18n="files.col_modified">Geändert</span>
+                <span class="sort-icon">↕</span>
+              </th>
+              <th><span data-i18n="files.col_actions">Aktionen</span></th>
+            </tr>
+          </thead>
+          <tbody id="file-list">
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="icon">📂</div>
+                  <p data-i18n="files.empty">Noch kein Archiv gescannt.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- ── Duplikate ─────────────────────────────────────────────── -->
+    <div id="view-duplicates" class="view">
+      <div class="view-header">
+        <h2 data-i18n="dups.title">Duplikate</h2>
+        <button class="btn" id="btn-refresh-dups"
+                data-i18n="btn.refresh">Aktualisieren</button>
+      </div>
+      <div class="dup-scroll" id="dup-list">
+        <div class="dup-empty" data-i18n="dups.none">Keine Duplikate gefunden.</div>
+      </div>
+    </div>
+
+    <!-- ── Monitor ───────────────────────────────────────────────── -->
+    <div id="view-monitor" class="view">
+      <div class="view-header">
+        <h2 data-i18n="monitor.title">Monitor</h2>
+        <button class="btn" id="btn-refresh-health"
+                data-i18n="btn.refresh">Aktualisieren</button>
+      </div>
+      <div class="monitor-scroll">
+        <div class="health-grid" id="health-grid"></div>
+        <div class="log-box">
+          <div class="log-box-header" data-i18n="monitor.log">Aktivitätslog</div>
+          <div class="log-lines" id="activity-log">—</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- i18n must load before app.js -->
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
