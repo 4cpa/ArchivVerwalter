@@ -1,8 +1,7 @@
 name: Release
 
-# Triggered by a version tag push (e.g. v1.2.16).
-# npm version patch/minor/major creates + pushes the tag automatically
-# (via the postversion hook: git push && git push --tags).
+# Triggered by a push to master whose commit message starts with "chore(release):".
+# npm version patch/minor/major creates that commit and pushes it (no tag pushed locally).
 #
 # Flow:
 #   build (matrix, 5 jobs in parallel)
@@ -12,8 +11,7 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [master]
 
 permissions:
   contents: write
@@ -21,6 +19,7 @@ permissions:
 jobs:
   # ── Platform builds ────────────────────────────────────────────────────────
   build:
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
     strategy:
       fail-fast: false    # finish all platforms even if one fails
       matrix:
@@ -112,6 +111,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read version from package.json
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -121,9 +124,9 @@ jobs:
       - name: List artifacts
         run: ls -lh artifacts/
 
-      - name: Extract CHANGELOG notes for ${{ github.ref_name }}
+      - name: Extract CHANGELOG notes for v${{ steps.ver.outputs.version }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ steps.ver.outputs.version }}"
           awk "/^## \[${VERSION}\]/{found=1; next} found && /^---$/{exit} found" \
             CHANGELOG.md > release-notes.md
           cat release-notes.md
@@ -132,14 +135,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          TAG="v${VERSION}"
           # Explicit globs — excludes combined win11.exe (no arch suffix) that
           # electron-builder generates when both x64 + arm64 targets are defined.
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "$TAG" \
             artifacts/*win10*.exe \
             artifacts/*win11*x64*.exe \
             artifacts/*win11*arm64*.exe \
             artifacts/*.dmg \
             artifacts/*.AppImage \
             artifacts/*.deb \
-            --title "ArchivVerwalter $GITHUB_REF_NAME" \
+            --title "ArchivVerwalter ${TAG}" \
             --notes-file release-notes.md

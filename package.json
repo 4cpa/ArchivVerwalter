@@ -28,7 +28,7 @@
     "test:coverage": "jest --coverage --runInBand --forceExit",
     "preversion": "npm test",
     "version": "node scripts/changelog-stamp.js && git add CHANGELOG.md public/i18n.js",
-    "postversion": "git push && git push --tags",
+    "postversion": "git push",
     "release:patch": "npm version patch -m \"chore(release): v%s\"",
     "release:minor": "npm version minor -m \"chore(release): v%s\"",
     "release:major": "npm version major -m \"chore(release): v%s\""
