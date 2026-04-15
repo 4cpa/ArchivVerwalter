@@ -62,12 +62,6 @@
           <button id="btn-browse-path" class="btn btn-sm"
                   data-i18n="fs.browse" title="Durchsuchen">&#128193;</button>
         </div>
-        <div id="fs-browser" class="fs-browser hidden">
-          <div id="fs-crumb" class="fs-crumb"></div>
-          <div id="fs-entries" class="fs-entries"></div>
-          <button id="btn-select-dir" class="btn btn-primary btn-sm fs-select"
-                  data-i18n="fs.select">Diesen Ordner wählen</button>
-        </div>
         <div class="form-row">
           <button id="btn-save-archive"   class="btn btn-primary btn-sm"
                   data-i18n="btn.add">Hinzufügen</button>
@@ -182,6 +176,25 @@
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
+
+<!-- ── Filesystem browser modal ───────────────────────────────────────── -->
+<div id="fs-modal" class="fs-modal hidden">
+  <div class="fs-modal-box">
+    <div class="fs-modal-hdr">
+      <button id="fs-btn-drives" class="fs-drives-btn" title="Laufwerke">🖴</button>
+      <div id="fs-crumb" class="fs-crumb"></div>
+      <button id="fs-btn-close" class="fs-close-btn">✕</button>
+    </div>
+    <div id="fs-entries" class="fs-modal-entries"></div>
+    <div class="fs-modal-ftr">
+      <div id="fs-selected-path" class="fs-sel-path"></div>
+      <button id="btn-cancel-browse" class="btn btn-sm"
+              data-i18n="btn.cancel">Abbrechen</button>
+      <button id="btn-select-dir" class="btn btn-primary btn-sm"
+              data-i18n="fs.select" disabled>Diesen Ordner wählen</button>
+    </div>
+  </div>
+</div>
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>

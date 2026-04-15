@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Laufwerksbrowser komplett als Modal-Overlay neu gebaut — war vorher als 160 px
+  hohes Inline-Panel in der Sidebar eingebettet; Laufwerke und Ordner waren kaum
+  erreichbar. Das neue Modal öffnet sich zentriert über der App (700 × 540 px),
+  listet alle Volumes prominent auf und erlaubt beliebig tiefe Navigation.
+- "Laufwerke"-Schaltfläche (🖴) im Modal-Header kehrt jederzeit zur Laufwerksliste
+  zurück, ohne das Modal zu schliessen — auch nach einem Navigationsfehler.
+- `waitForServer` in `electron/main.js`: Response-Body wird jetzt mit `res.resume()`
+  sofort geleert (Sockets blieben sonst offen), jeder Versuch hat einen 1-s-Timeout
+  (verhindert hängende Verbindungen beim Hochfahren), und die Retry-Grenze wurde von
+  40 × 200 ms (8 s) auf 150 × 200 ms (30 s) erhöht — ausreichend auch für
+  Antivirus-Scans beim Erststart unter Windows.
+- NSIS-Installer: Kompression von `normal` auf `store` geändert — Dateien werden
+  nicht mehr komprimiert, die Installation ist dadurch rein I/O-gebunden und
+  deutlich schneller abgeschlossen.
+
 ---
 
 ## [1.2.5] — 2026-04-15

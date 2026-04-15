@@ -430,75 +430,84 @@ function rerender() {
   if (logEl && state.activityLog.length) logEl.textContent = state.activityLog.join('\n');
 }
 
-/* ── Filesystem browser ───────────────────────────────────────────────────── */
+/* ── Filesystem browser modal ─────────────────────────────────────────────── */
 const fsBrowser = {
   _currentPath: null,
 
+  /** Open the modal and load the drives list. */
   open() {
-    const panel = document.getElementById('fs-browser');
-    panel.classList.remove('hidden');
-    this._render(t('fs.loading'), null, []);
+    document.getElementById('fs-modal').classList.remove('hidden');
+    this.showDrives();
+  },
+
+  /** Go back to the root drives list without closing the modal. */
+  showDrives() {
+    this._currentPath = null;
+    document.getElementById('fs-crumb').textContent = t('fs.drives');
+    document.getElementById('fs-selected-path').textContent = '';
+    document.getElementById('btn-select-dir').disabled = true;
+    document.getElementById('fs-entries').innerHTML =
+      `<div class="fs-entry-empty">${escHtml(t('fs.loading'))}</div>`;
+
     api.getDrives().then(drives => {
-      this._currentPath = null;
-      const entries = document.getElementById('fs-entries');
-      entries.innerHTML = drives.length
-        ? drives.map(d => {
-            const lbl = d.label || d.path;
-            const icon = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? '\uD83D\uDD17'
-                       : /usb|removable/i.test(lbl)                        ? '\uD83D\uDCBE'
-                       : /cd|dvd/i.test(lbl)                               ? '\uD83D\uDCBF'
-                       : '\uD83D\uDDB4';
-            return `<div class="fs-entry" data-path="${escHtml(d.path)}">${icon} ${escHtml(lbl)}</div>`;
-          }).join('')
-        : `<div class="fs-entry-empty">${escHtml(t('fs.no_drives'))}</div>`;
-      document.getElementById('fs-crumb').textContent = t('fs.drives');
-      document.getElementById('btn-select-dir').disabled = true;
+      if (!drives.length) {
+        document.getElementById('fs-entries').innerHTML =
+          `<div class="fs-entry-empty">${escHtml(t('fs.no_drives'))}</div>`;
+        return;
+      }
+      document.getElementById('fs-entries').innerHTML = drives.map(d => {
+        const lbl  = d.label || d.path;
+        const icon = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? '\uD83D\uDD17'
+                   : /usb|removable/i.test(lbl)                        ? '\uD83D\uDCBE'
+                   : /cd|dvd/i.test(lbl)                               ? '\uD83D\uDCBF'
+                   : '\uD83D\uDDB4';
+        return `<div class="fs-entry fs-entry-drive" data-path="${escHtml(d.path)}">${icon} ${escHtml(lbl)}</div>`;
+      }).join('');
     }).catch(err => {
-      this._render(t('fs.err_browse', { msg: err.message }), null, []);
+      document.getElementById('fs-entries').innerHTML =
+        `<div class="fs-entry-empty">${escHtml(t('fs.err_browse', { msg: err.message }))}</div>`;
     });
   },
 
+  /** Close the modal. */
   close() {
-    document.getElementById('fs-browser').classList.add('hidden');
+    document.getElementById('fs-modal').classList.add('hidden');
     this._currentPath = null;
   },
 
+  /** Navigate into a directory, update the modal and the path input. */
   async navigate(dirPath) {
-    this._currentPath = null;  // clear before async call so stale path is never selected
-    this._render(t('fs.loading'), dirPath, []);
+    this._currentPath = null;
+    document.getElementById('btn-select-dir').disabled = true;
+    document.getElementById('fs-crumb').textContent = dirPath;
+    document.getElementById('fs-entries').innerHTML =
+      `<div class="fs-entry-empty">${escHtml(t('fs.loading'))}</div>`;
+
     try {
       const data = await api.browse(dirPath);
       this._currentPath = data.path;
-      this._render(null, data.path, data.dirs, data.parent);
-      document.getElementById('archive-path').value = data.path;
+
+      document.getElementById('fs-crumb').textContent       = data.path;
+      document.getElementById('fs-selected-path').textContent = data.path;
+      document.getElementById('btn-select-dir').disabled    = false;
+      document.getElementById('archive-path').value         = data.path;
+
+      const rows = [];
+      if (data.parent !== null && data.parent !== undefined)
+        rows.push(`<div class="fs-entry fs-entry-up" data-path="${escHtml(data.parent)}">\u2191 ${escHtml(t('fs.up'))}</div>`);
+      if (!data.dirs.length)
+        rows.push(`<div class="fs-entry-empty">${escHtml(t('fs.no_dirs'))}</div>`);
+      else
+        rows.push(...data.dirs.map(d =>
+          `<div class="fs-entry" data-path="${escHtml(d.path)}">\uD83D\uDCC1 ${escHtml(d.name)}</div>`
+        ));
+      document.getElementById('fs-entries').innerHTML = rows.join('');
     } catch (err) {
       toast(t('fs.err_browse', { msg: err.message }), 'error');
-      // Reset UI so entries don't stay stuck on "Loading…"
-      this._render(t('fs.err_browse', { msg: err.message }), null, []);
+      // Show error but allow user to go back to drives via the 🖴 button
+      document.getElementById('fs-entries').innerHTML =
+        `<div class="fs-entry-empty">${escHtml(t('fs.err_browse', { msg: err.message }))}</div>`;
     }
-  },
-
-  _render(msg, currentPath, dirs, parent) {
-    const crumb   = document.getElementById('fs-crumb');
-    const entries = document.getElementById('fs-entries');
-    const selBtn  = document.getElementById('btn-select-dir');
-
-    crumb.textContent   = currentPath || t('fs.drives');
-    // Disable the button while loading/error (msg set) or when no directory is selected.
-    selBtn.disabled     = !!msg || !currentPath;
-
-    if (msg) { entries.innerHTML = `<div class="fs-entry-empty">${escHtml(msg)}</div>`; return; }
-
-    const rows = [];
-    if (parent !== undefined && parent !== null)
-      rows.push(`<div class="fs-entry fs-entry-up" data-path="${escHtml(parent)}">\u2191 ${escHtml(t('fs.up'))}</div>`);
-    if (dirs.length === 0)
-      rows.push(`<div class="fs-entry-empty">${escHtml(t('fs.no_dirs'))}</div>`);
-    else
-      rows.push(...dirs.map(d =>
-        `<div class="fs-entry" data-path="${escHtml(d.path)}">\u{1F4C1} ${escHtml(d.name)}</div>`
-      ));
-    entries.innerHTML = rows.join('');
   },
 };
 
@@ -527,21 +536,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     fsBrowser.close();
   });
 
+  // Open the drive browser modal
   document.getElementById('btn-browse-path').addEventListener('click', () => {
-    const panel = document.getElementById('fs-browser');
-    if (panel.classList.contains('hidden')) {
-      fsBrowser.open();
-    } else {
-      fsBrowser.close();
-    }
+    fsBrowser.open();
   });
 
+  // 🖴 button inside modal header — go back to drives list
+  document.getElementById('fs-btn-drives').addEventListener('click', () => {
+    fsBrowser.showDrives();
+  });
+
+  // ✕ button inside modal header
+  document.getElementById('fs-btn-close').addEventListener('click', () => {
+    fsBrowser.close();
+  });
+
+  // Cancel button in modal footer
+  document.getElementById('btn-cancel-browse').addEventListener('click', () => {
+    fsBrowser.close();
+  });
+
+  // Click on a drive or folder entry → navigate into it
   document.getElementById('fs-entries').addEventListener('click', (e) => {
     const entry = e.target.closest('.fs-entry');
     if (!entry || !entry.dataset.path) return;
     fsBrowser.navigate(entry.dataset.path);
   });
 
+  // "Select this folder" button in modal footer
   document.getElementById('btn-select-dir').addEventListener('click', () => {
     if (fsBrowser._currentPath) {
       document.getElementById('archive-path').value = fsBrowser._currentPath;

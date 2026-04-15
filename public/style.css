@@ -489,39 +489,121 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 3px; }
 
-/* ── Filesystem browser ──────────────────────────────────────────────────── */
+/* ── Add-archive form path row ────────────────────────────────────────────── */
 .path-row { display: flex; gap: 4px; }
 .path-row input { flex: 1; min-width: 0; }
 
-.fs-browser {
-  margin-top: 4px;
-  background: rgba(0,0,0,.18);
-  border-radius: var(--radius);
+/* ── Filesystem browser modal overlay ────────────────────────────────────── */
+.fs-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fs-modal.hidden { display: none !important; }
+
+.fs-modal-box {
+  background: #1e2434;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  width: min(700px, 92vw);
+  max-height: min(540px, 88vh);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,.6);
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.08);
 }
-.fs-crumb {
-  padding: 5px 8px;
-  font-size: .7rem;
-  color: var(--sidebar-accent);
-  word-break: break-all;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  line-height: 1.3;
+
+.fs-modal-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.2);
+  flex-shrink: 0;
 }
-.fs-entries {
-  max-height: 160px;
-  overflow-y: auto;
-}
-.fs-entry {
-  padding: 5px 8px;
-  font-size: .78rem;
-  color: var(--sidebar-fg);
+
+.fs-drives-btn {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 5px;
+  color: rgba(255,255,255,.75);
   cursor: pointer;
+  font-size: .95rem;
+  padding: 2px 8px;
+  line-height: 1.6;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.fs-drives-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+.fs-crumb {
+  flex: 1;
+  font-size: .78rem;
+  color: var(--sidebar-accent);
+  font-family: monospace;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.fs-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.35);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.fs-close-btn:hover { color: #fff; }
+
+.fs-modal-entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  min-height: 200px;
+}
+
+.fs-entry {
+  padding: 7px 12px;
+  font-size: .83rem;
+  color: rgba(255,255,255,.78);
+  cursor: pointer;
+  border-radius: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background .1s;
+  user-select: none;
 }
-.fs-entry:hover  { background: rgba(74,158,255,.18); }
-.fs-entry-up     { color: rgba(255,255,255,.5); }
-.fs-entry-empty  { padding: 8px; font-size: .75rem; color: rgba(255,255,255,.3); }
-.fs-select       { width: 100%; border-radius: 0; font-size: .75rem; padding: 5px 8px; }
+.fs-entry:hover  { background: rgba(74,158,255,.22); color: #fff; }
+.fs-entry-drive  { font-weight: 500; padding: 9px 12px; font-size: .85rem; }
+.fs-entry-up     { color: rgba(255,255,255,.42); font-style: italic; }
+.fs-entry-empty  { padding: 28px 12px; font-size: .8rem; color: rgba(255,255,255,.3); text-align: center; }
+
+.fs-modal-ftr {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,.15);
+  flex-shrink: 0;
+}
+
+.fs-sel-path {
+  flex: 1;
+  font-size: .72rem;
+  color: rgba(255,255,255,.38);
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}

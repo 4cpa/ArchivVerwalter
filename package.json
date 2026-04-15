@@ -53,7 +53,7 @@
     "appId": "ch.archivverwalter.app",
     "productName": "ArchivVerwalter",
     "copyright": "Copyright © 2026",
-    "compression": "normal",
+    "compression": "store",
     "asar": true,
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**"

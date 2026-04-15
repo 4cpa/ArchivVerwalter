@@ -139,13 +139,22 @@ function createWindow() {
 }
 
 // ── Wait for server to be ready ───────────────────────────────────────────
-function waitForServer(retries = 40, delay = 200) {
+// Polls the health endpoint until a 200 is returned.
+// res.resume() drains the response body so the socket is freed immediately.
+// A per-attempt timeout prevents hung connections from stalling the loop.
+// 150 retries × 200 ms = 30 s max — enough for slow antivirus/first-run scans.
+function waitForServer(retries = 150, delay = 200) {
   return new Promise((resolve, reject) => {
     function attempt(n) {
-      http.get(`${URL}/api/health`, (res) => {
+      const req = http.get(`${URL}/api/health`, (res) => {
+        res.resume(); // always drain so the socket is released
         if (res.statusCode === 200) return resolve();
         retry(n);
-      }).on('error', () => retry(n));
+      });
+      req.on('error', () => retry(n));
+      // If a connection is accepted but no response comes (partial startup),
+      // destroy and retry rather than hanging indefinitely.
+      req.setTimeout(1000, () => { req.destroy(); retry(n); });
     }
     function retry(n) {
       if (n <= 0) return reject(new Error(`Server did not become ready on ${URL}`));
