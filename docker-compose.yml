@@ -4,7 +4,7 @@ services:
     image: archivverwalter:latest
     container_name: archivverwalter
     ports:
-      - "3000:3000"
+      - "4040:3000"   # host:container — port 3000 already used by 4CPA Prognostic
     volumes:
       # Persistent database and logs (Docker-managed volumes)
       - av_data:/app/data

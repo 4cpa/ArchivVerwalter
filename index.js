@@ -6,7 +6,7 @@ const createApp  = require('./src/server');
 const logger     = require('./src/logger');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'main.db');
-const PORT    = parseInt(process.env.PORT, 10) || 3000;
+const PORT    = parseInt(process.env.PORT, 10) || 4040;
 const HOST    = process.env.HOST || '127.0.0.1';
 
 async function main() {

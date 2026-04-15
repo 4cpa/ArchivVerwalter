@@ -16,7 +16,7 @@ const path = require('path');
 const http = require('http');
 
 const isDev = !app.isPackaged;
-const PORT  = parseInt(process.env.PORT, 10) || 3737; // separate from `npm start` (3000)
+const PORT  = parseInt(process.env.PORT, 10) || 4041; // separate from npm start (4040) and Prognostic (3000)
 const HOST  = '127.0.0.1';
 const URL   = `http://${HOST}:${PORT}`;
 
