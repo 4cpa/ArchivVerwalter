@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.4] — 2026-04-15
+
+### Fixed
+- `better-sqlite3` filesystem browser: stuck state resolved after path validation error —
+  browse dialog now correctly re-enables after a permission-denied or invalid-path response
+
+---
+
 ## [1.2.3] — 2026-04-15
 
 ### Fixed
