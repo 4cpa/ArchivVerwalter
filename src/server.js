@@ -221,10 +221,18 @@ function createApp(db) {
   });
 
   app.post('/api/archives', async (req, res) => {
-    const { name, path: archivePath } = req.body || {};
-    if (!name || !archivePath) {
-      return res.status(400).json({ error: '"name" and "path" are required' });
+    const { path: archivePath } = req.body || {};
+    if (!archivePath) {
+      return res.status(400).json({ error: '"path" is required' });
     }
+
+    // Derive a human-readable name from the path:
+    //   \\Server\Share  → Share
+    //   C:\             → C:
+    //   /media/usb/Docs → Docs
+    const resolved = path.resolve(archivePath);
+    const basename = path.basename(resolved);
+    const name     = basename || resolved.replace(/[/\\]+$/, '') || resolved;
 
     try {
       await fs.promises.access(archivePath, fs.constants.R_OK);

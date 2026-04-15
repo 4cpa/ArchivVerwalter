@@ -19,7 +19,7 @@ const TRANSLATIONS = {
     'arch.remove_title': 'Entfernen',
 
     // Archive actions / toasts / logs
-    'arch.name_required':    'Name und Pfad erforderlich',
+    'arch.path_required':    'Pfad erforderlich',
     'arch.added':            'Archiv \u201e{name}\u201c hinzugef\u00fcgt',
     'arch.removed':          'Archiv entfernt',
     'arch.log_added':        'Archiv hinzugef\u00fcgt: {name} \u2192 {path}',
@@ -123,7 +123,7 @@ const TRANSLATIONS = {
     'arch.scan_title':   'Scan',
     'arch.remove_title': 'Remove',
 
-    'arch.name_required':    'Name and path are required',
+    'arch.path_required':    'Path is required',
     'arch.added':            'Archive \u201c{name}\u201d added',
     'arch.removed':          'Archive removed',
     'arch.log_added':        'Archive added: {name} \u2192 {path}',
@@ -222,7 +222,7 @@ const TRANSLATIONS = {
     'arch.scan_title':   'Scanner',
     'arch.remove_title': 'Supprimer',
 
-    'arch.name_required':    'Le nom et le chemin sont requis',
+    'arch.path_required':    'Chemin requis',
     'arch.added':            'Archive \u00ab\u00a0{name}\u00a0\u00bb ajout\u00e9e',
     'arch.removed':          'Archive supprim\u00e9e',
     'arch.log_added':        'Archive ajout\u00e9e\u00a0: {name} \u2192 {path}',

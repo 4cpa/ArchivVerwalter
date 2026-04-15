@@ -72,31 +72,29 @@ describe('GET /api/archives', () => {
 });
 
 describe('POST /api/archives', () => {
-  test('creates an archive with valid path', async () => {
+  test('creates an archive with valid path (name derived from path)', async () => {
     const res = await request(app)
       .post('/api/archives')
-      .send({ name: 'New', path: tmpDir });
+      .send({ path: tmpDir });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ name: 'New' });
+    expect(res.body.name).toBeTruthy();
   });
 
-  test('400 if name or path missing', async () => {
-    const r1 = await request(app).post('/api/archives').send({ name: 'X' });
+  test('400 if path missing', async () => {
+    const r1 = await request(app).post('/api/archives').send({});
     expect(r1.status).toBe(400);
-    const r2 = await request(app).post('/api/archives').send({ path: tmpDir });
-    expect(r2.status).toBe(400);
   });
 
   test('400 if path does not exist', async () => {
     const res = await request(app)
       .post('/api/archives')
-      .send({ name: 'Bad', path: '/totally/nonexistent/path' });
+      .send({ path: '/totally/nonexistent/path' });
     expect(res.status).toBe(400);
   });
 
   test('409 for duplicate path', async () => {
-    await request(app).post('/api/archives').send({ name: 'A', path: tmpDir });
-    const res = await request(app).post('/api/archives').send({ name: 'B', path: tmpDir });
+    await request(app).post('/api/archives').send({ path: tmpDir });
+    const res = await request(app).post('/api/archives').send({ path: tmpDir });
     expect(res.status).toBe(409);
   });
 });

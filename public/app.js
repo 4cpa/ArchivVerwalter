@@ -75,7 +75,7 @@ const api = {
 
   getHealth:     ()         => api.get('/api/health'),
   getArchives:   ()         => api.get('/api/archives'),
-  addArchive:    (n, p)     => api.post('/api/archives', { name: n, path: p }),
+  addArchive:    (p)        => api.post('/api/archives', { path: p }),
   deleteArchive: (id)       => api.delete(`/api/archives/${id}`),
   scanArchive:   (id)       => api.post(`/api/archives/${id}/scan`),
   getScanStatus: (id)       => api.get(`/api/archives/${id}/scan/status`),
@@ -545,15 +545,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   document.getElementById('btn-save-archive').addEventListener('click', async () => {
-    const name = document.getElementById('archive-name').value.trim();
-    const p    = document.getElementById('archive-path').value.trim();
-    if (!name || !p) { toast(t('arch.name_required'), 'error'); return; }
+    const p = document.getElementById('archive-path').value.trim();
+    if (!p) { toast(t('arch.path_required'), 'error'); return; }
 
     try {
-      await api.addArchive(name, p);
-      toast(t('arch.added', { name }), 'success');
-      log(t('arch.log_added', { name, path: p }));
-      document.getElementById('archive-name').value = '';
+      const arch = await api.addArchive(p);
+      toast(t('arch.added', { name: arch.name }), 'success');
+      log(t('arch.log_added', { name: arch.name, path: p }));
       document.getElementById('archive-path').value = '';
       addForm.classList.add('hidden');
       fsBrowser.close();
