@@ -1,12 +1,18 @@
 'use strict';
 
-const sqlite3 = require('sqlite3');
-const fs      = require('fs');
-const path    = require('path');
+const BetterSqlite3 = require('better-sqlite3');
+const fs            = require('fs');
+const path          = require('path');
 
 /**
- * Thin Promise wrapper around the sqlite3 callback API.
- * One instance = one open database connection.
+ * Thin Promise wrapper around the better-sqlite3 synchronous API.
+ * Keeps the same async interface as the previous sqlite3-based class so
+ * all callers (server.js, scanner.js, dedup.js) remain unchanged.
+ *
+ * better-sqlite3 advantages over sqlite3:
+ *  – Official prebuilt binaries for every Electron release (no compilation).
+ *  – ~2-3× faster for typical workloads.
+ *  – Simpler error model (throws synchronously instead of errback).
  */
 class Database {
   constructor(dbPath) {
@@ -20,20 +26,16 @@ class Database {
     if (this.dbPath !== ':memory:') {
       await fs.promises.mkdir(path.dirname(this.dbPath), { recursive: true });
     }
-    await new Promise((resolve, reject) => {
-      this._db = new sqlite3.Database(this.dbPath, (err) =>
-        err ? reject(err) : resolve()
-      );
-    });
+    this._db = new BetterSqlite3(this.dbPath);
     // Performance & integrity settings
-    await this.run('PRAGMA journal_mode = WAL');
-    await this.run('PRAGMA foreign_keys = ON');
-    await this.run('PRAGMA synchronous = NORMAL');
+    this._db.pragma('journal_mode = WAL');
+    this._db.pragma('foreign_keys = ON');
+    this._db.pragma('synchronous = NORMAL');
   }
 
   /** Create tables and indexes. Idempotent — safe to call on every start. */
   async init() {
-    await this.run(`
+    this._db.exec(`
       CREATE TABLE IF NOT EXISTS archives (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
         name       TEXT    NOT NULL,
@@ -42,7 +44,7 @@ class Database {
       )
     `);
 
-    await this.run(`
+    this._db.exec(`
       CREATE TABLE IF NOT EXISTS files (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
         archive_id   INTEGER NOT NULL REFERENCES archives(id) ON DELETE CASCADE,
@@ -56,47 +58,51 @@ class Database {
       )
     `);
 
-    await this.run(`CREATE INDEX IF NOT EXISTS idx_files_hash    ON files(hash)`);
-    await this.run(`CREATE INDEX IF NOT EXISTS idx_files_archive ON files(archive_id)`);
-    await this.run(`CREATE INDEX IF NOT EXISTS idx_files_ext     ON files(ext)`);
+    this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_hash    ON files(hash)`);
+    this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_archive ON files(archive_id)`);
+    this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_ext     ON files(ext)`);
   }
 
-  /** Execute a statement; resolves with { lastID, changes }. */
+  /**
+   * Execute a statement; resolves with { lastID, changes }.
+   * Maps better-sqlite3's `lastInsertRowid` → `lastID` for API compatibility.
+   * better-sqlite3 throws synchronously on constraint violations — we convert
+   * those to rejected Promises so callers can use the same await/catch pattern.
+   */
   run(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      this._db.run(sql, params, function (err) {
-        err ? reject(err) : resolve({ lastID: this.lastID, changes: this.changes });
-      });
-    });
+    try {
+      const result = this._db.prepare(sql).run(...params);
+      return Promise.resolve({ lastID: result.lastInsertRowid, changes: result.changes });
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 
   /** Fetch one row; resolves with the row object or undefined. */
   get(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      this._db.get(sql, params, (err, row) =>
-        err ? reject(err) : resolve(row)
-      );
-    });
+    try {
+      return Promise.resolve(this._db.prepare(sql).get(...params));
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 
   /** Fetch all matching rows; resolves with an array. */
   all(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      this._db.all(sql, params, (err, rows) =>
-        err ? reject(err) : resolve(rows)
-      );
-    });
+    try {
+      return Promise.resolve(this._db.prepare(sql).all(...params));
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 
   /** Close the connection gracefully. */
   close() {
-    return new Promise((resolve, reject) => {
-      if (!this._db) return resolve();
-      this._db.close((err) => {
-        this._db = null;
-        err ? reject(err) : resolve();
-      });
-    });
+    if (this._db) {
+      this._db.close();
+      this._db = null;
+    }
+    return Promise.resolve();
   }
 }
 

@@ -464,6 +464,7 @@ const fsBrowser = {
   },
 
   async navigate(dirPath) {
+    this._currentPath = null;  // clear before async call so stale path is never selected
     this._render(t('fs.loading'), dirPath, []);
     try {
       const data = await api.browse(dirPath);
@@ -472,6 +473,8 @@ const fsBrowser = {
       document.getElementById('archive-path').value = data.path;
     } catch (err) {
       toast(t('fs.err_browse', { msg: err.message }), 'error');
+      // Reset UI so entries don't stay stuck on "Loading…"
+      this._render(t('fs.err_browse', { msg: err.message }), null, []);
     }
   },
 
@@ -481,7 +484,8 @@ const fsBrowser = {
     const selBtn  = document.getElementById('btn-select-dir');
 
     crumb.textContent   = currentPath || t('fs.drives');
-    selBtn.disabled     = !currentPath;
+    // Disable the button while loading/error (msg set) or when no directory is selected.
+    selBtn.disabled     = !!msg || !currentPath;
 
     if (msg) { entries.innerHTML = `<div class="fs-entry-empty">${escHtml(msg)}</div>`; return; }
 
