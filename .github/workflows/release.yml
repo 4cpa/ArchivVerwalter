@@ -132,6 +132,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" artifacts/* \
+          # Explicit globs — excludes combined win11.exe (no arch suffix) that
+          # electron-builder generates when both x64 + arm64 targets are defined.
+          gh release create "$GITHUB_REF_NAME" \
+            artifacts/*win10*.exe \
+            artifacts/*win11*x64*.exe \
+            artifacts/*win11*arm64*.exe \
+            artifacts/*.dmg \
+            artifacts/*.AppImage \
+            artifacts/*.deb \
             --title "ArchivVerwalter $GITHUB_REF_NAME" \
             --notes-file release-notes.md
