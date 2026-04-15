@@ -1,6 +1,6 @@
 {
   "name": "archivverwalter",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Archive manager — index, deduplicate and browse file archives via web UI",
   "main": "electron/main.js",
   "author": {
