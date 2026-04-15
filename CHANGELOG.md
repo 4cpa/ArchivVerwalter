@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.1] — 2026-04-15
 
+### Changed
+- Archive name field removed — name is now auto-derived from path basename
+  (e.g. /media/usb/Fotos → "Fotos", C:\ → "C:", \\Server\Share → "Share")
+- Add-archive form shows only path input + browse button
+
+### Performance
+- Installer compression: normal (was maximum/LZMA) — ~2x faster decompression
+- requestedExecutionLevel: asInvoker — no UAC prompt, no SmartScreen admin scan
+- perMachine: false — installs to %LOCALAPPDATA%\Programs without elevation
+- Chromium: disabled background networking, SafeBrowsing, TranslateUI,
+  phishing detection, renderer backgrounding — faster startup on Windows
+- app.setAppUserModelId set for correct Windows taskbar grouping
+
 ---
 
 ## [1.2.0] — 2026-04-15
