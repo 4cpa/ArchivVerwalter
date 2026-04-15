@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] — 2026-04-15
 
+### Added
+- Filesystem browser in add-archive form: browse connected drives, USB sticks, network mounts and local folders without typing a path
+- `/api/fs/drives` endpoint lists available volumes per platform (Windows A–Z, macOS `/Volumes/`, Linux `/media`, `/mnt`, `/run/media`)
+- `/api/fs/browse` endpoint navigates directory trees, returns sorted subdirectories only
+
+### Fixed
+- Single-instance lock (`app.requestSingleInstanceLock`) prevents `EADDRINUSE` crash when a second instance starts during update or auto-start
+- Second launch attempt now brings the existing window to the foreground instead of silently exiting
+- Friendly error dialog when port is already in use, with Task Manager instructions for Windows users
+
 ---
 
 ## [1.0.6] — 2026-04-15
