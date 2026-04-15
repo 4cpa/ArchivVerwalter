@@ -20,49 +20,59 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
+            script: dist:linux
             artifact_glob: "dist/*.AppImage dist/*.deb"
 
+          # Windows 10 -- x64 only (Intel/AMD, 64-bit)
           - os: windows-latest
             platform: win
-            artifact_glob: "dist/*.exe"
+            script: dist:win10
+            artifact_glob: "dist/*win10*.exe"
+
+          # Windows 11 -- x64 + arm64 (Surface Pro X, Copilot+ PCs)
+          - os: windows-latest
+            platform: win
+            script: dist:win11
+            artifact_glob: "dist/*win11*.exe"
 
           - os: macos-latest
             platform: mac
+            script: dist:mac
             artifact_glob: "dist/*.dmg"
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      # ── Checkout ─────────────────────────────────────────────────────────
+      # -- Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── Node.js ──────────────────────────────────────────────────────────
+      # -- Node.js
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      # ── Python (needed to compile sqlite3 native module) ─────────────────
+      # -- Python (needed to compile sqlite3 native module)
       - name: Set up Python (Windows)
         if: runner.os == 'Windows'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # ── Linux build deps ─────────────────────────────────────────────────
+      # -- Linux build deps
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y python3 make g++
 
-      # ── Install npm packages ──────────────────────────────────────────────
+      # -- Install npm packages
       - name: Install dependencies
         run: npm ci
 
-      # ── Generate .icns icon (macOS only) ─────────────────────────────────
+      # -- Generate .icns icon (macOS only)
       # electron-builder requires a .icns file for macOS builds.
-      # We generate it from the existing 512×512 icon.png using built-in tools.
+      # We generate it from the existing 512x512 icon.png using built-in tools.
       - name: Generate icon.icns (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -80,21 +90,21 @@ jobs:
           sips -z 512 512 "$SOURCE" --out "$ICONSET/icon_256x256@2x.png" > /dev/null
           iconutil -c icns "$ICONSET" -o electron/icons/icon.icns
 
-      # ── Build installer ───────────────────────────────────────────────────
-      # dist:linux / dist:win / dist:mac all run electron:rebuild first,
-      # then electron-builder for the respective platform.
-      - name: Build installer (${{ matrix.platform }})
-        run: npm run dist:${{ matrix.platform }}
+      # -- Build installer
+      # Each matrix entry specifies its own npm script.
+      # Windows: dist:win10 (x64) or dist:win11 (x64 + arm64)
+      - name: Build installer (${{ matrix.script }})
+        run: npm run ${{ matrix.script }}
         env:
           # Prevents electron-builder from trying to auto-publish
           EP_DRAFT: true
 
-      # ── List build output (debug) ─────────────────────────────────────────
+      # -- List build output (debug)
       - name: List dist/ directory
         shell: bash
         run: ls -lh dist/ 2>/dev/null || echo "(dist/ is empty)"
 
-      # ── Upload artifacts to GitHub Release ────────────────────────────────
+      # -- Upload artifacts to GitHub Release
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
