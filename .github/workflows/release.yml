@@ -122,16 +122,11 @@ jobs:
         run: ls -lh artifacts/
 
       - name: Extract CHANGELOG notes for ${{ github.ref_name }}
-        id: notes
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          NOTES=$(awk "/^## \[${VERSION}\]/{found=1; next} found && /^---$/{exit} found" CHANGELOG.md)
-          # Pass multi-line string to the next step via $GITHUB_OUTPUT
-          {
-            echo "body<<EOF"
-            echo "$NOTES"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          awk "/^## \[${VERSION}\]/{found=1; next} found && /^---$/{exit} found" \
+            CHANGELOG.md > release-notes.md
+          cat release-notes.md
 
       - name: Create GitHub Release
         env:
@@ -139,4 +134,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" artifacts/* \
             --title "ArchivVerwalter $GITHUB_REF_NAME" \
-            --notes "${{ steps.notes.outputs.body }}"
+            --notes-file release-notes.md
