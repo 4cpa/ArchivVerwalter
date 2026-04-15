@@ -111,7 +111,7 @@ function createApp(db) {
     try {
       await fs.promises.access(archivePath, fs.constants.R_OK);
     } catch {
-      return res.status(400).json({ error: 'Path does not exist or is not readable' });
+      return res.status(400).json({ error: 'Path does not exist, is not readable, or network share is not reachable' });
     }
 
     try {
