@@ -446,35 +446,44 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 }
 .dup-hash { font-family: monospace; font-size: .72rem; color: var(--text-muted); }
 .dup-group-title { font-weight: 600; }
-.dup-group table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.dup-group table thead th {
-  padding: 6px 14px;
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: #555;
-  border-bottom: 2px solid var(--border);
-  background: #f4f6f8;
-  white-space: nowrap;
-}
-.dup-group table td {
-  padding: 9px 14px;
-  font-size: .84rem;
-  color: #212529;
+
+/* Grid-based rows — immune to table-layout bugs */
+.dup-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 160px 90px 110px 40px;
+  align-items: center;
   border-bottom: 1px solid var(--border);
+  color: #212529;
+  font-size: .84rem;
+}
+.dup-row:last-child { border-bottom: none; }
+.dup-row > div {
+  padding: 9px 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.dup-group table tr:last-child td { border-bottom: none; }
-.dup-group table tr.keeper   { background: #e6f9ed; }
-.dup-group table tr.row-even { background: #f8f9fa; }
-.dup-col-action { width: 110px; }
-.dup-col-name   { width: 35%; }
-.dup-col-num    { width: 100px; }
-.dup-col-dl     { width: 40px; text-align: center; }
-.dup-keeping    { color: #1a7f3c; font-weight: 600; font-size: .82rem; }
+/* Column header row */
+.dup-col-hdr {
+  background: #f4f6f8;
+  border-bottom: 2px solid var(--border) !important;
+}
+.dup-col-hdr > div {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #555;
+  padding: 6px 12px;
+}
+/* Alternating row backgrounds */
+.dup-row.keeper   { background: #e6f9ed; }
+.dup-row.row-even { background: #f8f9fa; }
+/* Cells */
+.dr-action { }
+.dr-size, .dr-date { font-variant-numeric: tabular-nums; }
+.dr-dl { text-align: center; }
+.dup-keeping { color: #1a7f3c; font-weight: 600; }
 .dup-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
 
 /* ── Monitor view ────────────────────────────────────────────────────────── */

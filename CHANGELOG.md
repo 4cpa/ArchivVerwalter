@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.14] — 2026-04-15
+
+### Fixed
+- Duplikate-Ansicht: `<table>`-Rendering vollständig durch CSS-Grid-Zeilen ersetzt.
+  Jede Datei-Zeile ist ein `<div class="dup-row">` mit `display:grid` und fixen
+  Spaltenbreiten — kein Browser-seitiges Tabellen-Layout mehr, das Zellen kollabieren
+  lassen kann. Spaltenköpfe, Zebra-Streifen und Keeper-Hervorhebung bleiben erhalten.
+
+---
+
 ## [1.2.13] — 2026-04-15
 
 ### Fixed

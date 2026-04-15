@@ -307,22 +307,19 @@ function renderDuplicates(groups) {
     const realGi = start + gi;
     const rows = g.files.map((f, fi) => {
       const isKeeper = fi === 0;
-      const rowCls   = isKeeper ? 'keeper' : (fi % 2 === 0 ? 'row-even' : '');
-      return `
-        <tr class="${rowCls}" data-group="${realGi}">
-          <td class="dup-col-action">${isKeeper
-            ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
-            : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`
-          }</td>
-          <td class="dup-col-name" title="${escHtml(f.path)}">${escHtml(f.name)}</td>
-          <td>${escHtml(f.archive_name)}</td>
-          <td class="dup-col-num">${formatSize(f.size)}</td>
-          <td class="dup-col-num">${formatDate(f.modified_at)}</td>
-          <td class="dup-col-dl">
-            <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
-               title="${escHtml(t('dups.dl_title'))}" download>\u2193</a>
-          </td>
-        </tr>`;
+      const rowCls   = ['dup-row', isKeeper ? 'keeper' : (fi % 2 ? 'row-odd' : 'row-even')].join(' ');
+      const action   = isKeeper
+        ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
+        : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`;
+      return `<div class="${rowCls}" data-group="${realGi}">
+        <div class="dr-action">${action}</div>
+        <div class="dr-name" title="${escHtml(f.path)}">${escHtml(f.name)}</div>
+        <div class="dr-archive">${escHtml(f.archive_name)}</div>
+        <div class="dr-size">${formatSize(f.size)}</div>
+        <div class="dr-date">${formatDate(f.modified_at)}</div>
+        <div class="dr-dl"><a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
+          title="${escHtml(t('dups.dl_title'))}" download>\u2193</a></div>
+      </div>`;
     }).join('');
 
     return `
@@ -335,19 +332,15 @@ function renderDuplicates(groups) {
             ${escHtml(t('dups.resolve_btn'))}
           </button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th class="dup-col-action"></th>
-              <th>${escHtml(t('files.col_name'))}</th>
-              <th>${escHtml(t('files.col_archive'))}</th>
-              <th class="dup-col-num">${escHtml(t('files.col_size'))}</th>
-              <th class="dup-col-num">${escHtml(t('files.col_modified'))}</th>
-              <th class="dup-col-dl"></th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="dup-row dup-col-hdr">
+          <div class="dr-action"></div>
+          <div class="dr-name">${escHtml(t('files.col_name'))}</div>
+          <div class="dr-archive">${escHtml(t('files.col_archive'))}</div>
+          <div class="dr-size">${escHtml(t('files.col_size'))}</div>
+          <div class="dr-date">${escHtml(t('files.col_modified'))}</div>
+          <div class="dr-dl"></div>
+        </div>
+        ${rows}
       </div>`;
   }).join('');
 
