@@ -93,7 +93,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "ArchivVerwalter",
-      "runAfterFinish": false
+      "runAfterFinish": false,
+      "include": "build/installer.nsh"
     },
     "mac": {
       "target": [

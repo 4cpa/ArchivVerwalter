@@ -41,5 +41,8 @@ module.exports = {
     // Do not auto-launch after install — avoids false "crash" if first-run
     // takes unusually long (antivirus scan of native modules on first launch).
     runAfterFinish: false,
+    // DPI-aware manifest so Windows renders installer at native resolution
+    // instead of bitmap-upscaling it — prevents blurry text on HiDPI displays.
+    include: 'build/installer.nsh',
   }
 };

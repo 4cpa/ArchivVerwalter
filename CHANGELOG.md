@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.10] — 2026-04-15
+
+### Fixed
+- NSIS-Installer: `ManifestDPIAware true` in `build/installer.nsh` eingebunden — ohne
+  diesen Eintrag rendert Windows den Installer-Dialog per Bitmap-Hochskalierung, was auf
+  HiDPI-/Retina-Displays zu unscharf wirkenden Schriften führt. Mit dem DPI-Manifest wird
+  die UI in nativer Auflösung gezeichnet.
+
+---
+
 ## [1.2.9] — 2026-04-15
 
 ### Fixed
