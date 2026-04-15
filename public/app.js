@@ -285,6 +285,12 @@ function renderDupPagination() {
   el.innerHTML = pages.join('');
 }
 
+function keepActionHtml(fileId, groupIdx, isKeeper) {
+  return isKeeper
+    ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
+    : `<button class="btn btn-sm" data-action="keep" data-keep="${fileId}" data-group="${groupIdx}">${escHtml(t('dups.keep'))}</button>`;
+}
+
 function renderDuplicates(groups) {
   const wrap = document.getElementById('dup-list');
   state.dupGroups = groups;
@@ -308,9 +314,7 @@ function renderDuplicates(groups) {
     const rows = g.files.map((f, fi) => {
       const isKeeper = fi === 0;
       const rowCls   = ['dup-row', isKeeper ? 'keeper' : (fi % 2 ? 'row-odd' : 'row-even')].join(' ');
-      const action   = isKeeper
-        ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
-        : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`;
+      const action   = keepActionHtml(f.id, realGi, isKeeper);
       return `<div class="${rowCls}" data-group="${realGi}">
         <div class="dr-action">${action}</div>
         <div class="dr-name" title="${escHtml(f.path)}">${escHtml(f.name)}</div>
@@ -862,39 +866,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Mark a different file as keeper
     if (action === 'keep') {
-      const keepId = parseInt(e.target.dataset.keep, 10);
-      const rows   = [...document.querySelectorAll(`tr[data-group="${groupIdx}"]`)];
+      const keepId  = parseInt(e.target.dataset.keep, 10);
+      const rows    = [...document.querySelectorAll(`div.dup-row[data-group="${groupIdx}"]`)];
+      const btnIds  = new Map(rows.map(r => {
+        const b = r.querySelector('[data-action="keep"]');
+        return [r, b ? parseInt(b.dataset.keep, 10) : null];
+      }));
 
       rows.forEach(row => {
-        const btn = row.querySelector('[data-action="keep"]');
-        const rowFileId = btn ? parseInt(btn.dataset.keep, 10) : null;
-        const isKeeper  = rowFileId === null ? false : rowFileId === keepId;
+        const rowFileId = btnIds.get(row);
+        const isNew     = rowFileId === keepId;
+        const wasKeeper = rowFileId === null;
 
-        row.classList.toggle('keeper', rowFileId === keepId || (rowFileId === null && !rows.some(r => {
-          const b = r.querySelector('[data-action="keep"]');
-          return b && parseInt(b.dataset.keep, 10) === keepId;
-        })));
+        row.classList.toggle('keeper', isNew || (wasKeeper && !rows.some(r => btnIds.get(r) === keepId)));
 
-        // Swap button ↔ label
-        const td = row.cells[0];
-        if (rowFileId === keepId) {
-          td.innerHTML = `<span style="color:var(--success)">${escHtml(t('dups.keeping'))}</span>`;
-        } else if (btn === null && !isKeeper) {
-          // This row was the keeper, give it back a keep button
-          const file = group.files.find(f => {
-            return !rows.some(r => {
-              const b = r.querySelector('[data-action="keep"]');
-              return b && parseInt(b.dataset.keep, 10) === f.id;
-            }) && f.id !== keepId;
-          }) || group.files.find(f => f.id !== keepId);
-          if (file) td.innerHTML = `<button class="btn btn-sm" data-action="keep" data-keep="${file.id}" data-group="${groupIdx}">${escHtml(t('dups.keep'))}</button>`;
+        const cell = row.querySelector('.dr-action');
+        if (isNew) {
+          cell.innerHTML = keepActionHtml(keepId, groupIdx, true);
+        } else if (wasKeeper) {
+          const file = group.files.find(f => f.id !== keepId && ![...btnIds.values()].includes(f.id))
+                    ?? group.files.find(f => f.id !== keepId);
+          if (file) cell.innerHTML = keepActionHtml(file.id, groupIdx, false);
         }
       });
     }
 
     // Resolve all duplicates in group
     if (action === 'resolve-all') {
-      const rows    = [...document.querySelectorAll(`tr[data-group="${groupIdx}"]`)];
+      const rows    = [...document.querySelectorAll(`div.dup-row[data-group="${groupIdx}"]`)];
       const keeperRow = rows.find(r => r.classList.contains('keeper'));
 
       // Determine which file ID is the keeper (no keep-button in its first cell)

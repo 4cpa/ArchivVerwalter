@@ -1,8 +1,14 @@
-name: Build & Release
+name: Release
 
-# Runs whenever a version tag (v1.2.3) is pushed.
-# Builds native installers on each platform's own runner and
-# attaches them to the GitHub Release that is created automatically.
+# Triggered by a version tag push (e.g. v1.2.16).
+# npm version patch/minor/major creates + pushes the tag automatically
+# (via the postversion hook: git push && git push --tags).
+#
+# Flow:
+#   build (matrix, 5 jobs in parallel)
+#     └── upload-artifact per platform
+#   release (needs: build)
+#     └── download all artifacts → extract CHANGELOG notes → gh release create
 
 on:
   push:
@@ -10,118 +16,127 @@ on:
       - 'v*'
 
 permissions:
-  contents: write   # needed to create/update releases and upload assets
+  contents: write
 
 jobs:
+  # ── Platform builds ────────────────────────────────────────────────────────
   build:
     strategy:
-      fail-fast: false    # keep building the other platforms even if one fails
+      fail-fast: false    # finish all platforms even if one fails
       matrix:
         include:
           - os: ubuntu-latest
-            platform: linux
             script: dist:linux
-            artifact_glob: "dist/*.AppImage dist/*.deb"
+            artifact: linux-x64
 
-          # Windows 10 -- x64 only (Intel/AMD, 64-bit)
           - os: windows-latest
-            platform: win
             script: dist:win10
-            artifact_glob: "dist/*win10*.exe"
+            artifact: win10-x64
 
-          # Windows 11 x64
+          # Windows 11: separate jobs so x64 + arm64 run in parallel.
+          # Each npm script calls `electron-builder install-app-deps --arch <target>`
+          # first, ensuring better-sqlite3's correct prebuilt binary is bundled.
           - os: windows-latest
-            platform: win
             script: dist:win11:x64
-            artifact_glob: "dist/*win11*x64*.exe"
+            artifact: win11-x64
 
-          # Windows 11 arm64 (Surface Pro X, Copilot+ PCs)
-          # install-app-deps is called with --arch arm64 so better-sqlite3's
-          # prebuilt arm64 binary is downloaded before packaging — otherwise the
-          # x64 host binary would be bundled and crash on startup on ARM hardware.
           - os: windows-latest
-            platform: win
             script: dist:win11:arm64
-            artifact_glob: "dist/*win11*arm64*.exe"
+            artifact: win11-arm64
 
           - os: macos-latest
-            platform: mac
             script: dist:mac
-            artifact_glob: "dist/*.dmg"
+            artifact: mac
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      # -- Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # -- Node.js
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
 
-      # -- Python (needed to compile sqlite3 native module)
+      # better-sqlite3 falls back to compiling from source when no prebuilt
+      # binary matches the exact Electron ABI — Python + build tools cover that.
       - name: Set up Python (Windows)
         if: runner.os == 'Windows'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # -- Linux build deps
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y python3 make g++
+        run: sudo apt-get update -q && sudo apt-get install -y python3 make g++
 
-      # -- Install npm packages
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      # -- Generate .icns icon (macOS only)
-      # electron-builder requires a .icns file for macOS builds.
-      # We generate it from the existing 512x512 icon.png using built-in tools.
+      # electron-builder requires icon.icns for macOS packaging.
+      # Generate it from the existing icon.png with the macOS-native sips + iconutil.
       - name: Generate icon.icns (macOS)
         if: runner.os == 'macOS'
         run: |
-          SOURCE="electron/icons/icon.png"
-          ICONSET="electron/icons/icon.iconset"
-          mkdir -p "$ICONSET"
-          for SIZE in 16 32 64 128 256 512; do
-            sips -z $SIZE $SIZE "$SOURCE" \
-              --out "$ICONSET/icon_${SIZE}x${SIZE}.png" > /dev/null
+          SRC="electron/icons/icon.png"
+          SET="electron/icons/icon.iconset"
+          mkdir -p "$SET"
+          for S in 16 32 64 128 256 512; do
+            sips -z $S $S "$SRC" --out "$SET/icon_${S}x${S}.png"    > /dev/null
           done
-          # @2x variants (double resolution)
-          sips -z 32  32  "$SOURCE" --out "$ICONSET/icon_16x16@2x.png"  > /dev/null
-          sips -z 64  64  "$SOURCE" --out "$ICONSET/icon_32x32@2x.png"  > /dev/null
-          sips -z 256 256 "$SOURCE" --out "$ICONSET/icon_128x128@2x.png" > /dev/null
-          sips -z 512 512 "$SOURCE" --out "$ICONSET/icon_256x256@2x.png" > /dev/null
-          iconutil -c icns "$ICONSET" -o electron/icons/icon.icns
+          sips -z  32  32 "$SRC" --out "$SET/icon_16x16@2x.png"     > /dev/null
+          sips -z  64  64 "$SRC" --out "$SET/icon_32x32@2x.png"     > /dev/null
+          sips -z 256 256 "$SRC" --out "$SET/icon_128x128@2x.png"   > /dev/null
+          sips -z 512 512 "$SRC" --out "$SET/icon_256x256@2x.png"   > /dev/null
+          iconutil -c icns "$SET" -o electron/icons/icon.icns
 
-      # -- Build installer
-      # Each matrix entry specifies its own npm script.
-      # Windows: dist:win10 (x64) or dist:win11 (x64 + arm64)
-      - name: Build installer (${{ matrix.script }})
+      - name: Build (${{ matrix.script }})
         run: npm run ${{ matrix.script }}
         env:
-          # Prevents electron-builder from trying to auto-publish
-          EP_DRAFT: true
+          EP_DRAFT: 'true'   # prevents electron-builder from auto-publishing
 
-      # -- List build output (debug)
-      - name: List dist/ directory
-        shell: bash
-        run: ls -lh dist/ 2>/dev/null || echo "(dist/ is empty)"
-
-      # -- Upload artifacts to GitHub Release
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v2
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          # Create the release as a draft so you can review before publishing
-          draft: true
-          generate_release_notes: true
-          files: |
+          name: ${{ matrix.artifact }}
+          path: |
             dist/*.exe
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
+          if-no-files-found: error
+
+  # ── GitHub Release ─────────────────────────────────────────────────────────
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lh artifacts/
+
+      - name: Extract CHANGELOG notes for ${{ github.ref_name }}
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES=$(awk "/^## \[${VERSION}\]/{found=1; next} found && /^---$/{exit} found" CHANGELOG.md)
+          # Pass multi-line string to the next step via $GITHUB_OUTPUT
+          {
+            echo "body<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" artifacts/* \
+            --title "ArchivVerwalter $GITHUB_REF_NAME" \
+            --notes "${{ steps.notes.outputs.body }}"

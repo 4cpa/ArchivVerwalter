@@ -476,9 +476,9 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   color: #555;
   padding: 6px 12px;
 }
-/* Alternating row backgrounds */
-.dup-row.keeper   { background: #e6f9ed; }
+/* Alternating row backgrounds — keeper must come last to win the specificity tie */
 .dup-row.row-even { background: #f8f9fa; }
+.dup-row.keeper   { background: #e6f9ed; }
 /* Cells */
 .dr-action { }
 .dr-size, .dr-date { font-variant-numeric: tabular-nums; }

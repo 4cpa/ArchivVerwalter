@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.16] — 2026-04-15
+
+### Fixed
+- Duplikate-Ansicht: „Behalten"-Button und „Aufgelöst markieren" funktionierten nach
+  dem Wechsel auf CSS-Grid-Zeilen nicht mehr, weil die Click-Handler noch
+  `tr[data-group="..."]` (altes Table-Layout) als Selektor verwendeten. Ersetzt durch
+  `div.dup-row[data-group="..."]`; Zugriff auf `row.cells[0]` (nur für `<td>`) durch
+  `row.querySelector('.dr-action')` ersetzt.
+- CSS-Spezifität: `.dup-row.row-even` erscheint nun vor `.dup-row.keeper`, sodass
+  ein Keeper-Wechsel per Klick die grüne Hervorhebung korrekt setzt.
+- Keeper-Wechsel-Logik: O(n²)-DOM-Scan (`.some()` innerhalb `forEach`) durch
+  vorberechnete `Map` der Button-IDs ersetzt; doppelte HTML-Strings für Keeper-Label
+  und Behalten-Button in Helper `keepActionHtml()` konsolidiert.
+
+---
+
 ## [1.2.15] — 2026-04-15
 
 ---
