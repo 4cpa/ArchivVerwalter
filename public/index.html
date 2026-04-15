@@ -58,9 +58,19 @@
         <input type="text" id="archive-name"
                data-i18n-ph="arch.name_ph"
                placeholder="Name, z.B. Fotos 2024">
-        <input type="text" id="archive-path"
-               data-i18n-ph="arch.path_ph"
-               placeholder="Pfad, z.B. /home/user/fotos">
+        <div class="path-row">
+          <input type="text" id="archive-path"
+                 data-i18n-ph="arch.path_ph"
+                 placeholder="Pfad, z.B. /home/user/fotos">
+          <button id="btn-browse-path" class="btn btn-sm"
+                  data-i18n="fs.browse" title="Durchsuchen">&#128193;</button>
+        </div>
+        <div id="fs-browser" class="fs-browser hidden">
+          <div id="fs-crumb" class="fs-crumb"></div>
+          <div id="fs-entries" class="fs-entries"></div>
+          <button id="btn-select-dir" class="btn btn-primary btn-sm fs-select"
+                  data-i18n="fs.select">Diesen Ordner wählen</button>
+        </div>
         <div class="form-row">
           <button id="btn-save-archive"   class="btn btn-primary btn-sm"
                   data-i18n="btn.add">Hinzufügen</button>

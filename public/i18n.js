@@ -95,6 +95,16 @@ const TRANSLATIONS = {
     'monitor.log':        'Aktivit\u00e4tslog',
     'monitor.unreachable':'Monitor nicht erreichbar: {msg}',
 
+    // Filesystem browser
+    'fs.browse':      '\u{1F4C2}',
+    'fs.drives':      'Laufwerke & Datentr\u00e4ger',
+    'fs.select':      'Diesen Ordner w\u00e4hlen',
+    'fs.up':          '\u00dcbergeordneter Ordner',
+    'fs.loading':     'L\u00e4dt\u2026',
+    'fs.no_dirs':     'Keine Unterordner',
+    'fs.no_drives':   'Keine Laufwerke gefunden',
+    'fs.err_browse':  'Fehler: {msg}',
+
     // General errors
     'error.generic':      'Fehler: {msg}',
   },
@@ -185,6 +195,16 @@ const TRANSLATIONS = {
     'monitor.log':        'Activity log',
     'monitor.unreachable':'Monitor unreachable: {msg}',
 
+    // Filesystem browser
+    'fs.browse':      '\u{1F4C2}',
+    'fs.drives':      'Drives & Volumes',
+    'fs.select':      'Select this folder',
+    'fs.up':          'Parent folder',
+    'fs.loading':     'Loading\u2026',
+    'fs.no_dirs':     'No subfolders',
+    'fs.no_drives':   'No drives found',
+    'fs.err_browse':  'Error: {msg}',
+
     'error.generic':      'Error: {msg}',
   },
 
@@ -273,6 +293,16 @@ const TRANSLATIONS = {
     'monitor.err':        'Erreur',
     'monitor.log':        'Journal d\u2019activit\u00e9',
     'monitor.unreachable':'Moniteur inaccessible\u00a0: {msg}',
+
+    // Filesystem browser
+    'fs.browse':      '\u{1F4C2}',
+    'fs.drives':      'Lecteurs & volumes',
+    'fs.select':      'Choisir ce dossier',
+    'fs.up':          'Dossier parent',
+    'fs.loading':     'Chargement\u2026',
+    'fs.no_dirs':     'Aucun sous-dossier',
+    'fs.no_drives':   'Aucun lecteur trouv\u00e9',
+    'fs.err_browse':  'Erreur\u00a0: {msg}',
 
     'error.generic':      'Erreur\u00a0: {msg}',
   },

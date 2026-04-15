@@ -488,3 +488,40 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 3px; }
+
+/* ── Filesystem browser ──────────────────────────────────────────────────── */
+.path-row { display: flex; gap: 4px; }
+.path-row input { flex: 1; min-width: 0; }
+
+.fs-browser {
+  margin-top: 4px;
+  background: rgba(0,0,0,.18);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.fs-crumb {
+  padding: 5px 8px;
+  font-size: .7rem;
+  color: var(--sidebar-accent);
+  word-break: break-all;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  line-height: 1.3;
+}
+.fs-entries {
+  max-height: 160px;
+  overflow-y: auto;
+}
+.fs-entry {
+  padding: 5px 8px;
+  font-size: .78rem;
+  color: var(--sidebar-fg);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fs-entry:hover  { background: rgba(74,158,255,.18); }
+.fs-entry-up     { color: rgba(255,255,255,.5); }
+.fs-entry-empty  { padding: 8px; font-size: .75rem; color: rgba(255,255,255,.3); }
+.fs-select       { width: 100%; border-radius: 0; font-size: .75rem; padding: 5px 8px; }

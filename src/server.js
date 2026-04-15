@@ -344,6 +344,86 @@ function createApp(db) {
     }
   });
 
+  // ── Filesystem browser ───────────────────────────────────────────────────────
+
+  /** List available root volumes / drives */
+  app.get('/api/fs/drives', async (_req, res) => {
+    const drives = [];
+    try {
+      if (process.platform === 'win32') {
+        // Check A–Z; skip inaccessible drives silently
+        for (let c = 65; c <= 90; c++) {
+          const p = `${String.fromCharCode(c)}:\\`;
+          try { await fs.promises.access(p, fs.constants.R_OK); drives.push({ label: `${String.fromCharCode(c)}:`, path: p }); }
+          catch { /* not present */ }
+        }
+      } else if (process.platform === 'darwin') {
+        drives.push({ label: '/', path: '/' });
+        try {
+          const vols = await fs.promises.readdir('/Volumes', { withFileTypes: true });
+          for (const v of vols) {
+            if (v.isDirectory() || v.isSymbolicLink())
+              drives.push({ label: v.name, path: `/Volumes/${v.name}` });
+          }
+        } catch { /* /Volumes unavailable */ }
+      } else {
+        // Linux: root + common removable-media locations
+        drives.push({ label: '/ (Root)', path: '/' });
+        const bases = ['/media', '/mnt', '/run/media'];
+        for (const base of bases) {
+          let top;
+          try { top = await fs.promises.readdir(base, { withFileTypes: true }); }
+          catch { continue; }
+          for (const entry of top) {
+            if (!entry.isDirectory()) continue;
+            const p = path.join(base, entry.name);
+            // /media/<user>/ contains per-user mounts — list one level deeper
+            if (base !== '/mnt') {
+              try {
+                const sub = await fs.promises.readdir(p, { withFileTypes: true });
+                for (const s of sub) {
+                  if (s.isDirectory())
+                    drives.push({ label: s.name, path: path.join(p, s.name) });
+                }
+              } catch { /* skip */ }
+            } else {
+              drives.push({ label: entry.name, path: p });
+            }
+          }
+        }
+      }
+      res.json(drives);
+    } catch (err) {
+      logger.error(err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  /** Browse a directory — returns only subdirectories */
+  app.get('/api/fs/browse', async (req, res) => {
+    const rawPath = req.query.path;
+    if (!rawPath) return res.status(400).json({ error: '"path" query parameter is required' });
+
+    const dirPath   = path.resolve(rawPath);
+    const parentRaw = path.dirname(dirPath);
+    const parent    = parentRaw !== dirPath ? parentRaw : null; // null at FS root
+
+    try {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+      const dirs = [];
+      for (const e of entries) {
+        if (!e.isDirectory()) continue;
+        if (process.platform !== 'win32' && e.name.startsWith('.')) continue; // skip hidden
+        dirs.push({ name: e.name, path: path.join(dirPath, e.name) });
+      }
+      dirs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+      res.json({ path: dirPath, parent, dirs });
+    } catch (err) {
+      const status = err.code === 'EACCES' ? 403 : 404;
+      res.status(status).json({ error: err.code === 'EACCES' ? 'Permission denied' : err.message });
+    }
+  });
+
   // ── 404 catch-all ────────────────────────────────────────────────────────────
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 

@@ -15,6 +15,16 @@ const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
 const path = require('path');
 const http = require('http');
 
+// ── Single-instance lock ──────────────────────────────────────────────────
+// Prevents a second instance from starting when the app is already running
+// (e.g. after a Windows auto-start or a double-click during update).
+// The second instance immediately quits; the first instance brings its window
+// to the foreground so the user's click still feels responsive.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const isDev = !app.isPackaged;
 const PORT  = parseInt(process.env.PORT, 10) || 4041; // separate from npm start (4040) and Prognostic (3000)
 const HOST  = '127.0.0.1';
@@ -115,8 +125,21 @@ app.whenReady().then(async () => {
     await waitForServer();
     createWindow();
   } catch (err) {
-    dialog.showErrorBox('ArchivVerwalter — Startup Error', err.message);
+    const isPortBusy = err.code === 'EADDRINUSE';
+    const title   = 'ArchivVerwalter — Startup Error';
+    const message = isPortBusy
+      ? `Port ${PORT} is already in use.\n\nA previous ArchivVerwalter instance may still be running. Please close it via the Windows Task Manager (look for "ArchivVerwalter" or "electron.exe") and try again.`
+      : err.message;
+    dialog.showErrorBox(title, message);
     app.quit();
+  }
+});
+
+app.on('second-instance', () => {
+  // A second launch was attempted — focus the existing window instead
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
   }
 });
 

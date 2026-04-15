@@ -84,6 +84,9 @@ const api = {
   getDuplicates: ()         => api.get('/api/duplicates'),
   resolveDups:   (keep, del)=> api.post('/api/duplicates/resolve', { keepId: keep, deleteIds: del }),
 
+  getDrives:  ()     => api.get('/api/fs/drives'),
+  browse:     (p)    => api.get('/api/fs/browse?' + new URLSearchParams({ path: p })),
+
   downloadUrl: (id) => `/api/files/${id}/download`,
   previewUrl:  (id) => `/api/files/${id}/preview`,
 };
@@ -427,6 +430,69 @@ function rerender() {
   if (logEl && state.activityLog.length) logEl.textContent = state.activityLog.join('\n');
 }
 
+/* ── Filesystem browser ───────────────────────────────────────────────────── */
+const fsBrowser = {
+  _currentPath: null,
+
+  open() {
+    const panel = document.getElementById('fs-browser');
+    panel.classList.remove('hidden');
+    this._render(t('fs.loading'), null, []);
+    api.getDrives().then(drives => {
+      this._currentPath = null;
+      const entries = document.getElementById('fs-entries');
+      entries.innerHTML = drives.length
+        ? drives.map(d =>
+            `<div class="fs-entry" data-path="${escHtml(d.path)}">\u{1F4BE} ${escHtml(d.label)}</div>`
+          ).join('')
+        : `<div class="fs-entry-empty">${escHtml(t('fs.no_drives'))}</div>`;
+      document.getElementById('fs-crumb').textContent = t('fs.drives');
+      document.getElementById('btn-select-dir').disabled = true;
+    }).catch(err => {
+      this._render(t('fs.err_browse', { msg: err.message }), null, []);
+    });
+  },
+
+  close() {
+    document.getElementById('fs-browser').classList.add('hidden');
+    this._currentPath = null;
+  },
+
+  async navigate(dirPath) {
+    this._render(t('fs.loading'), dirPath, []);
+    try {
+      const data = await api.browse(dirPath);
+      this._currentPath = data.path;
+      this._render(null, data.path, data.dirs, data.parent);
+      document.getElementById('archive-path').value = data.path;
+    } catch (err) {
+      toast(t('fs.err_browse', { msg: err.message }), 'error');
+    }
+  },
+
+  _render(msg, currentPath, dirs, parent) {
+    const crumb   = document.getElementById('fs-crumb');
+    const entries = document.getElementById('fs-entries');
+    const selBtn  = document.getElementById('btn-select-dir');
+
+    crumb.textContent   = currentPath || t('fs.drives');
+    selBtn.disabled     = !currentPath;
+
+    if (msg) { entries.innerHTML = `<div class="fs-entry-empty">${escHtml(msg)}</div>`; return; }
+
+    const rows = [];
+    if (parent !== undefined && parent !== null)
+      rows.push(`<div class="fs-entry fs-entry-up" data-path="${escHtml(parent)}">\u2191 ${escHtml(t('fs.up'))}</div>`);
+    if (dirs.length === 0)
+      rows.push(`<div class="fs-entry-empty">${escHtml(t('fs.no_dirs'))}</div>`);
+    else
+      rows.push(...dirs.map(d =>
+        `<div class="fs-entry" data-path="${escHtml(d.path)}">\u{1F4C1} ${escHtml(d.name)}</div>`
+      ));
+    entries.innerHTML = rows.join('');
+  },
+};
+
 /* ── Main init ────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -449,6 +515,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('btn-cancel-archive').addEventListener('click', () => {
     addForm.classList.add('hidden');
+    fsBrowser.close();
+  });
+
+  document.getElementById('btn-browse-path').addEventListener('click', () => {
+    const panel = document.getElementById('fs-browser');
+    if (panel.classList.contains('hidden')) {
+      fsBrowser.open();
+    } else {
+      fsBrowser.close();
+    }
+  });
+
+  document.getElementById('fs-entries').addEventListener('click', (e) => {
+    const entry = e.target.closest('.fs-entry');
+    if (!entry || !entry.dataset.path) return;
+    fsBrowser.navigate(entry.dataset.path);
+  });
+
+  document.getElementById('btn-select-dir').addEventListener('click', () => {
+    if (fsBrowser._currentPath) {
+      document.getElementById('archive-path').value = fsBrowser._currentPath;
+      fsBrowser.close();
+    }
   });
   document.getElementById('btn-save-archive').addEventListener('click', async () => {
     const name = document.getElementById('archive-name').value.trim();
@@ -462,6 +551,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('archive-name').value = '';
       document.getElementById('archive-path').value = '';
       addForm.classList.add('hidden');
+      fsBrowser.close();
       await loadArchives();
     } catch (err) {
       toast(err.message, 'error');
