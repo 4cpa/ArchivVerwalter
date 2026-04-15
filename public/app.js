@@ -307,16 +307,14 @@ function renderDuplicates(groups) {
     const realGi = start + gi;
     const rows = g.files.map((f, fi) => {
       const isKeeper = fi === 0;
+      const rowCls   = isKeeper ? 'keeper' : (fi % 2 === 0 ? 'row-even' : '');
       return `
-        <tr class="${isKeeper ? 'keeper' : ''}" data-group="${realGi}">
+        <tr class="${rowCls}" data-group="${realGi}">
           <td class="dup-col-action">${isKeeper
             ? `<span class="dup-keeping">${escHtml(t('dups.keeping'))}</span>`
             : `<button class="btn btn-sm" data-action="keep" data-keep="${f.id}" data-group="${realGi}">${escHtml(t('dups.keep'))}</button>`
           }</td>
-          <td class="dup-col-name">
-            <div class="dup-file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</div>
-            <div class="dup-file-path">${escHtml(f.path)}</div>
-          </td>
+          <td class="dup-col-name" title="${escHtml(f.path)}">${escHtml(f.name)}</td>
           <td>${escHtml(f.archive_name)}</td>
           <td class="dup-col-num">${formatSize(f.size)}</td>
           <td class="dup-col-num">${formatDate(f.modified_at)}</td>

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.13] — 2026-04-15
+
+### Fixed
+- Duplikate-Ansicht: Zeilen 2–N einer Gruppe wurden als leere Striche dargestellt,
+  weil verschachtelte `<div>`-Blöcke in `<td>` das Layout kollabierten.
+  Zellen rendern nun als einfache Text-Zellen; Schriftgrösse angehoben (`.84rem`),
+  explizite Textfarbe `#212529`, Zebra-Streifen und stärkere Keeper-Hervorhebung
+  sorgen für deutlich bessere Lesbarkeit. `table-layout: fixed` verhindert
+  kollabierende Spaltenbreiten.
+
+---
+
 ## [1.2.12] — 2026-04-15
 
 ### Added
