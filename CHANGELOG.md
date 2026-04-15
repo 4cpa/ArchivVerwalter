@@ -11,13 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.4] — 2026-04-15
 
----
-
-## [1.2.4] — 2026-04-15
-
 ### Fixed
-- `better-sqlite3` filesystem browser: stuck state resolved after path validation error —
-  browse dialog now correctly re-enables after a permission-denied or invalid-path response
+- Test suite: eliminated a deterministic flaky failure in the UNIQUE-constraint test.
+  `better-sqlite3`'s native addon stores the `SqliteError` class from the first Jest VM
+  context it's loaded in; subsequent test files ran in a different context where
+  `instanceof Error` returned `false`, causing `rejects.toThrow()` to silently pass.
+  `db.run()` now wraps cross-context errors in a plain `Error` to keep the prototype chain
+  in the current context.
+- Test suite: scan test in `api.test.js` now polls until scan is `done` before returning,
+  and an `afterAll` drains pending I/O — prevents async scan callbacks from bleeding into
+  subsequent test files.
 
 ---
 
