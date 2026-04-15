@@ -71,6 +71,15 @@ jobs:
 
       - run: npm ci
 
+      # Windows Defender scans PE executables after NSIS writes them and can
+      # modify the binary in a way that invalidates the NSIS CRC checksum,
+      # causing "Installer integrity check has failed" on end-user machines.
+      # Excluding the workspace from real-time scanning prevents this.
+      - name: Exclude workspace from Windows Defender scanning
+        if: runner.os == 'Windows'
+        run: Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+        shell: pwsh
+
       # electron-builder requires icon.icns for macOS packaging.
       # Generate it from the existing icon.png with the macOS-native sips + iconutil.
       - name: Generate icon.icns (macOS)
