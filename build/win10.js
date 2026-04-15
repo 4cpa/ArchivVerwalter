@@ -18,8 +18,8 @@ module.exports = {
       { target: 'nsis', arch: ['x64'] }
     ],
     legalTrademarks: pkg.author.name,
-    // Triggers UAC prompt → fixes "run as administrator" issues on Win 10/11
-    requestedExecutionLevel: 'requireAdministrator',
+    // asInvoker: no UAC prompt, no SmartScreen admin-level scan delay
+    requestedExecutionLevel: 'asInvoker',
     icon: 'electron/icons/icon.ico',
     verifyUpdateCodeSignature: false,
     artifactName: '${productName}-Setup-${version}-win10-x64.${ext}'
@@ -27,8 +27,8 @@ module.exports = {
 
   nsis: {
     oneClick: false,
-    // perMachine: true → installs into Program Files → less UAC friction
-    perMachine: true,
+    // perMachine: false → installs to %LOCALAPPDATA%\Programs, no UAC needed
+    perMachine: false,
     allowToChangeInstallationDirectory: true,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,

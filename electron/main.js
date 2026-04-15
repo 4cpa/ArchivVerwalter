@@ -16,6 +16,24 @@ const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
 const path = require('path');
 const http = require('http');
 
+// ── Chromium startup optimisations ───────────────────────────────────────
+// Disable Chromium services that are irrelevant for a localhost-only app.
+// These flags reduce startup time measurably on Windows.
+app.commandLine.appendSwitch('disable-background-networking');
+app.commandLine.appendSwitch('disable-client-side-phishing-detection');
+app.commandLine.appendSwitch('disable-default-apps');
+app.commandLine.appendSwitch('no-first-run');
+app.commandLine.appendSwitch('no-default-browser-check');
+app.commandLine.appendSwitch('metrics-recording-only');
+app.commandLine.appendSwitch('safebrowsing-disable-auto-update');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-features',
+  'TranslateUI,AudioServiceOutOfProcess,CalculateNativeWinOcclusion');
+
+// Tell Windows this app's identity (needed for taskbar grouping and jump lists)
+app.setAppUserModelId('ch.archivverwalter.app');
+
 // ── Single-instance lock ──────────────────────────────────────────────────
 // Prevents a second instance from starting (e.g. after Windows auto-start or
 // double-click during update), which would cause an EADDRINUSE crash.
