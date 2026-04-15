@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.9] — 2026-04-15
+
 ### Fixed
 - Laufwerk-Icons (HDD/USB/NET/CD) nicht dargestellt: Emoji U+1F5B4 🖴 und
   Verwandte sind in den meisten Windows-Emoji-Fonts nicht enthalten und werden
