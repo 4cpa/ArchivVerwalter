@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- win11-arm64 Installer: native Modul `better-sqlite3` wurde bisher mit der x64-Architektur
+  des CI-Runners gebaut und in den arm64-Installer eingebettet. Beim Start auf echter
+  ARM-Hardware lehnte die arm64-Electron-Binary das x64-`.node`-File ab — die App startete
+  nicht und der Installer-Shortcut zeigte ins Leere.
+  Lösung: `dist:win11` aufgeteilt in `dist:win11:x64` und `dist:win11:arm64`; jeder
+  Schritt ruft `electron-builder install-app-deps --arch <ziel>` vor dem Packaging auf,
+  sodass `better-sqlite3` das passende vorkompilierte Binary herunterlädt.
+  GitHub-Actions-Workflow entsprechend in zwei separate Matrix-Jobs aufgeteilt.
+
 ---
 
 ## [1.2.7] — 2026-04-15

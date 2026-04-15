@@ -29,11 +29,20 @@ jobs:
             script: dist:win10
             artifact_glob: "dist/*win10*.exe"
 
-          # Windows 11 -- x64 + arm64 (Surface Pro X, Copilot+ PCs)
+          # Windows 11 x64
           - os: windows-latest
             platform: win
-            script: dist:win11
-            artifact_glob: "dist/*win11*.exe"
+            script: dist:win11:x64
+            artifact_glob: "dist/*win11*x64*.exe"
+
+          # Windows 11 arm64 (Surface Pro X, Copilot+ PCs)
+          # install-app-deps is called with --arch arm64 so better-sqlite3's
+          # prebuilt arm64 binary is downloaded before packaging — otherwise the
+          # x64 host binary would be bundled and crash on startup on ARM hardware.
+          - os: windows-latest
+            platform: win
+            script: dist:win11:arm64
+            artifact_glob: "dist/*win11*arm64*.exe"
 
           - os: macos-latest
             platform: mac
