@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.1] — 2026-04-15
 
+### Changed
+- App icon: white @4 logo on round #1a1f2e circle, transparent background
+- logo-white.png: white @4 on transparent (was invisible white-on-white)
+- favicon.png: black @4 on transparent (was black-on-white)
+- icon.ico regenerated with 16/32/48/64/128/256 px layers
+
 ---
 
 ## [1.1.0] — 2026-04-15
