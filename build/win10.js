@@ -41,6 +41,13 @@ module.exports = {
     // Do not auto-launch after install — avoids false "crash" if first-run
     // takes unusually long (antivirus scan of native modules on first launch).
     runAfterFinish: false,
+    // Use ZIP instead of 7z for the app bundle inside the NSIS installer.
+    // With 7z, NSIS extracts everything to %TEMP%\<random>.tmp\app-64.7z\
+    // first; Defender watches that path and locks unsigned EXEs (e.g.
+    // Uninstall ArchivVerwalter.exe) mid-write, causing "Fehler beim
+    // Überschreiben der Datei". ZIP extraction writes files in smaller
+    // chunks without the 7z temp-dir stage, avoiding the Defender lock.
+    useZip: true,
     // DPI-aware manifest so Windows renders installer at native resolution
     // instead of bitmap-upscaling it — prevents blurry text on HiDPI displays.
     include: 'build/installer.nsh',

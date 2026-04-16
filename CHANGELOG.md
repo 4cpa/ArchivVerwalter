@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.25] — 2026-04-16
+
+### Fixed
+- Windows-Installer: „Fehler beim Überschreiben der Datei / Uninstall ArchivVerwalter.exe"
+  behoben. electron-builder packt die App in ein internes `app-64.7z`-Archiv; NSIS
+  entpackt dieses komplett nach `%TEMP%\<random>.tmp\app-64.7z\`, bevor einzelne
+  Dateien ins Zielverzeichnis kopiert werden. Windows Defender sperrt dabei
+  `Uninstall ArchivVerwalter.exe` sofort beim Schreiben (unsignierte EXE im Temp-
+  Verzeichnis), und NSIS kann die Datei nicht überschreiben. Behoben mit
+  `useZip: true` in win10.js und win11.js: mit ZIP-Komprimierung gibt es keinen
+  7z-Zwischenpfad im Temp — Defender hat keinen gebündelten EXE-Extrakt zum Sperren.
+
+---
+
 ## [1.2.24] — 2026-04-16
 
 ### Fixed
