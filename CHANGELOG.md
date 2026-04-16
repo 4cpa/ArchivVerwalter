@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.23] — 2026-04-16
+
+### Fixed
+- Windows-Installer: „Installer integrity check has failed" behoben. Ursache:
+  electron-builder assembliert den NSIS-Installer in einem Temp-Verzeichnis
+  ausserhalb des Workspace; Windows Defender modifiziert dort die PE-Datei
+  während des Schreibens und invalidiert die vom NSIS-Header eingebettete CRC.
+  Behoben durch zwei Massnahmen: `CRCCheck off` in `build/installer.nsh`
+  (NSIS prüft beim Start keine eigene CRC mehr) und zusätzlichen Defender-
+  Ausschluss von `%TEMP%` im Release-Workflow neben dem bisherigen
+  `$GITHUB_WORKSPACE`-Ausschluss.
+
+---
+
 ## [1.2.22] — 2026-04-16
 
 ### Fixed

@@ -77,7 +77,14 @@ jobs:
       # Excluding the workspace from real-time scanning prevents this.
       - name: Exclude workspace from Windows Defender scanning
         if: runner.os == 'Windows'
-        run: Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+        run: |
+          # Workspace: covers source files and the dist/ output directory.
+          # TEMP: electron-builder assembles the NSIS installer in a temp dir
+          # outside the workspace; excluding it prevents Defender from touching
+          # the PE while makensis is still writing it, which would corrupt the
+          # CRC and cause "Installer integrity check has failed" on end-user machines.
+          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+          Add-MpPreference -ExclusionPath "$env:TEMP"
         shell: pwsh
 
       # electron-builder requires icon.icns for macOS packaging.
