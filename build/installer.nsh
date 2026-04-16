@@ -12,3 +12,17 @@ ManifestDPIAware true
 ; download integrity is guaranteed by the GitHub Release SHA-256 checksum and
 ; (when enabled) Authenticode code-signing of the final .exe.
 CRCCheck off
+
+; Fix electron-builder NSIS bug: shortcuts are created while files are still in
+; the temp extraction directory, so they point to a path that is deleted after
+; install. Re-create them here, after all files are in their final $INSTDIR.
+!macro customInstall
+  Delete "$DESKTOP\ArchivVerwalter.lnk"
+  CreateShortCut "$DESKTOP\ArchivVerwalter.lnk" \
+    "$INSTDIR\ArchivVerwalter.exe" "" "$INSTDIR\ArchivVerwalter.exe" 0
+
+  Delete "$SMPROGRAMS\ArchivVerwalter\ArchivVerwalter.lnk"
+  CreateDirectory "$SMPROGRAMS\ArchivVerwalter"
+  CreateShortCut "$SMPROGRAMS\ArchivVerwalter\ArchivVerwalter.lnk" \
+    "$INSTDIR\ArchivVerwalter.exe" "" "$INSTDIR\ArchivVerwalter.exe" 0
+!macroend
