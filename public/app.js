@@ -665,8 +665,6 @@ const fsBrowser = {
 const previewModal = {
   // Shown inline via <img> (SVG is safe here — scripts are sandboxed when loaded as img)
   _IMG_EXTS:   new Set(['jpg','jpeg','png','gif','webp','bmp','ico','avif','tiff','tif','heic','svg']),
-  // Shown in a sandboxed <iframe>
-  _PDF_EXTS:   new Set(['pdf']),
   // Fetched as text and displayed in <pre> (never executed/rendered as HTML)
   _TEXT_EXTS:  new Set(['txt','md','log','json','xml','yaml','yml','csv','ini','cfg','conf','nfo',
                          'sh','bat','ps1','cmd','py','js','ts','html','htm','css','sql','toml','lock',
@@ -770,8 +768,8 @@ const previewModal = {
   open(fileId, fileName, fileExt, filePath = '') {
     const ext = (fileExt || '').toLowerCase();
 
-    // Non-web-viewable: use stored preference or show the open-with dialog
-    if (!this._IMG_EXTS.has(ext) && !this._PDF_EXTS.has(ext) &&
+    // Non-browser-viewable: use stored preference or show the open-with dialog
+    if (!this._IMG_EXTS.has(ext) &&
         !this._VIDEO_EXTS.has(ext) && !this._AUDIO_EXTS.has(ext) &&
         !this._TEXT_EXTS.has(ext)) {
       const pref = this._getPreference(ext);
@@ -793,7 +791,6 @@ const previewModal = {
     body.innerHTML = `<div class="prev-loading">${escHtml(t('preview.loading'))}</div>`;
 
     if      (this._IMG_EXTS.has(ext))   this._showImage(body, fileId, fileName);
-    else if (this._PDF_EXTS.has(ext))   this._showPdf(body, fileId);
     else if (this._VIDEO_EXTS.has(ext)) this._showVideo(body, fileId);
     else if (this._AUDIO_EXTS.has(ext)) this._showAudio(body, fileId);
     else                                 this._showText(body, fileId);
@@ -802,10 +799,7 @@ const previewModal = {
   close() {
     document.getElementById('preview-modal').classList.add('hidden');
     const body = document.getElementById('prev-modal-body');
-    // Pause media before removing to avoid background audio/video
     body.querySelectorAll('video, audio').forEach(m => { m.pause(); m.src = ''; });
-    // Clear iframe to stop PDF loading
-    body.querySelectorAll('iframe').forEach(f => { f.src = 'about:blank'; });
     body.innerHTML = '';
   },
 
