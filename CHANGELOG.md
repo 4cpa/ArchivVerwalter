@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.27] — 2026-04-16
+
 ### Fixed
 - Duplikate-Ansicht: Spalten-Header-Balken (Aktion / Name / Archiv / Grösse / Geändert)
   erscheint jetzt einmalig als fixer Balken über der scrollbaren Gruppenliste,
