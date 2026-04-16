@@ -435,6 +435,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
+  flex-shrink: 0;
 }
 .dup-group-header {
   background: #fff8e1;

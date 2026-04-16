@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.22] — 2026-04-16
+
+### Fixed
+- Duplikate-Ansicht: Gruppen-Karten (`.dup-group`) wurden vom Flex-Algorithmus zu
+  dünnen Balken gestaucht, weil `flex-shrink: 1` (Default) in Kombination mit
+  `overflow: hidden` eine automatische Mindesthöhe von 0 erlaubt. Durch
+  `flex-shrink: 0` behalten die Karten ihre natürliche Höhe; der Scroll-Container
+  `.dup-scroll` erhält dadurch echten Overflow und ist wieder scrollbar.
+
+---
+
 ## [1.2.21] — 2026-04-15
 
 ---
