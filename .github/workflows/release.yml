@@ -78,13 +78,18 @@ jobs:
       - name: Exclude workspace from Windows Defender scanning
         if: runner.os == 'Windows'
         run: |
-          # Workspace: covers source files and the dist/ output directory.
-          # TEMP: electron-builder assembles the NSIS installer in a temp dir
-          # outside the workspace; excluding it prevents Defender from touching
-          # the PE while makensis is still writing it, which would corrupt the
-          # CRC and cause "Installer integrity check has failed" on end-user machines.
+          # GITHUB_WORKSPACE : source tree + dist/ output (final .exe lives here).
+          # RUNNER_TEMP       : GitHub Actions runner temp dir (D:\a\_temp on hosted
+          #                     runners) — electron-builder writes intermediate files
+          #                     here; different from $env:TEMP which is the user-profile
+          #                     temp (C:\Users\runneradmin\AppData\Local\Temp).
+          # TEMP / TMP        : OS temp dirs used by makensis and Node's os.tmpdir().
+          # All four must be excluded so Defender never touches a PE mid-write and
+          # cannot invalidate the NSIS payload or the final installer binary.
           Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+          Add-MpPreference -ExclusionPath "$env:RUNNER_TEMP"
           Add-MpPreference -ExclusionPath "$env:TEMP"
+          Add-MpPreference -ExclusionPath "$env:TMP"
         shell: pwsh
 
       # electron-builder requires icon.icns for macOS packaging.

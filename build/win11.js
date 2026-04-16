@@ -31,7 +31,10 @@ module.exports = {
     oneClick: false,
     // perMachine: false → installs to %LOCALAPPDATA%\Programs, no UAC needed
     perMachine: false,
-    allowToChangeInstallationDirectory: true,
+    // Fixed install dir avoids the electron-builder shortcut bug where the
+    // shortcut keeps pointing to the default path even when the user picked
+    // a different directory ("Datei kann nicht gefunden werden" on launch).
+    allowToChangeInstallationDirectory: false,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: 'ArchivVerwalter',

@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.24] — 2026-04-16
+
+### Fixed
+- Windows-Installer: „Datei kann nicht gefunden werden / EXE nicht ausführbar nach
+  Installation" behoben. Zwei Ursachen:
+  1. `allowToChangeInstallationDirectory: true` hat in electron-builder einen bekannten
+     Bug: der Shortcut bleibt auf das Standard-Installationsverzeichnis zeigen, auch
+     wenn der Benutzer ein anderes Verzeichnis gewählt hat. Deaktiviert in win10.js,
+     win11.js und package.json — die App installiert immer nach
+     `%LOCALAPPDATA%\Programs\ArchivVerwalter`.
+  2. CI-Workflow: `$env:RUNNER_TEMP` (GitHub-Actions-Runner-Temp, typisch `D:\a\_temp`)
+     wurde bisher nicht vom Windows-Defender-Echtzeit-Scan ausgeschlossen. electron-
+     builder schreibt Zwischendateien in dieses Verzeichnis, was zu einem korrupten
+     NSIS-Payload führen konnte. Zusätzlich `$env:TMP` ergänzt.
+
+---
+
 ## [1.2.23] — 2026-04-16
 
 ### Fixed
