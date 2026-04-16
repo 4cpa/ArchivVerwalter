@@ -663,23 +663,21 @@ const fsBrowser = {
 
 /* ── File preview modal ───────────────────────────────────────────────────── */
 const previewModal = {
-  // Shown inline via <img> (SVG is safe here — scripts are sandboxed when loaded as img)
-  _IMG_EXTS:   new Set(['jpg','jpeg','png','gif','webp','bmp','ico','avif','tiff','tif','heic','svg']),
-  // Fetched as text and displayed in <pre> (never executed/rendered as HTML)
-  _TEXT_EXTS:  new Set(['txt','md','log','json','xml','yaml','yml','csv','ini','cfg','conf','nfo',
-                         'sh','bat','ps1','cmd','py','js','ts','html','htm','css','sql','toml','lock',
-                         'gitignore','env','diff','patch','rst']),
-  // Native browser video player
-  _VIDEO_EXTS: new Set(['mp4','webm','ogv']),
-  // Native browser audio player
-  _AUDIO_EXTS: new Set(['mp3','wav','ogg','flac','m4a','aac','opus']),
+  _BROWSER_EXTS: new Set([
+    'jpg','jpeg','png','gif','webp','bmp','ico','avif','tiff','tif','heic','svg',
+    'mp4','webm','ogv',
+    'mp3','wav','ogg','flac','m4a','aac','opus',
+    'txt','md','log','json','xml','yaml','yml','csv','ini','cfg','conf','nfo',
+    'sh','bat','ps1','cmd','py','js','ts','css','sql','toml','lock',
+    'gitignore','env','diff','patch','rst',
+  ]),
 
   _PREFS_KEY: 'av_open_with',
 
   _getPreference(ext) {
     try {
       const p = JSON.parse(localStorage.getItem(this._PREFS_KEY) || '{}');
-      return ext in p ? p[ext] : null; // null = never set; '' = OS default
+      return ext in p ? p[ext] : null;
     } catch { return null; }
   },
 
@@ -768,98 +766,18 @@ const previewModal = {
   open(fileId, fileName, fileExt, filePath = '') {
     const ext = (fileExt || '').toLowerCase();
 
-    // Non-browser-viewable: use stored preference or show the open-with dialog
-    if (!this._IMG_EXTS.has(ext) &&
-        !this._VIDEO_EXTS.has(ext) && !this._AUDIO_EXTS.has(ext) &&
-        !this._TEXT_EXTS.has(ext)) {
-      const pref = this._getPreference(ext);
-      if (pref !== null) {
-        this._doOpen(fileId, pref);
-        toast(pref ? t('preview.opening_with', { prog: pref }) : t('preview.opening_os'));
-      } else {
-        this._showOpenDialog(fileId, fileName, ext, filePath);
-      }
+    if (this._BROWSER_EXTS.has(ext)) {
+      window.open(api.previewUrl(fileId), '_blank');
       return;
     }
 
-    document.getElementById('preview-modal').classList.remove('hidden');
-    document.getElementById('prev-modal-title').textContent = fileName;
-    const dl = document.getElementById('prev-btn-download');
-    dl.href = api.downloadUrl(fileId);
-    dl.setAttribute('download', fileName);
-    const body = document.getElementById('prev-modal-body');
-    body.innerHTML = `<div class="prev-loading">${escHtml(t('preview.loading'))}</div>`;
-
-    if      (this._IMG_EXTS.has(ext))   this._showImage(body, fileId, fileName);
-    else if (this._VIDEO_EXTS.has(ext)) this._showVideo(body, fileId);
-    else if (this._AUDIO_EXTS.has(ext)) this._showAudio(body, fileId);
-    else                                 this._showText(body, fileId);
-  },
-
-  close() {
-    document.getElementById('preview-modal').classList.add('hidden');
-    const body = document.getElementById('prev-modal-body');
-    body.querySelectorAll('video, audio').forEach(m => { m.pause(); m.src = ''; });
-    body.innerHTML = '';
-  },
-
-  _showImage(body, id, name) {
-    const img = document.createElement('img');
-    img.className = 'prev-image';
-    img.alt = name;
-    img.onerror = () => {
-      body.innerHTML = `<div class="prev-error">${escHtml(t('preview.load_error'))}</div>`;
-    };
-    body.innerHTML = '';
-    body.appendChild(img);
-    img.src = api.previewUrl(id);
-  },
-
-  _showPdf(body, id) {
-    const iframe = document.createElement('iframe');
-    iframe.className = 'prev-iframe';
-    iframe.sandbox = 'allow-same-origin allow-scripts';
-    iframe.title   = 'PDF Preview';
-    body.innerHTML = '';
-    body.appendChild(iframe);
-    iframe.src = api.previewUrl(id);
-  },
-
-  _showVideo(body, id) {
-    const video = document.createElement('video');
-    video.className = 'prev-video';
-    video.controls  = true;
-    body.innerHTML  = '';
-    body.appendChild(video);
-    video.src = api.previewUrl(id);
-  },
-
-  _showAudio(body, id) {
-    const audio = document.createElement('audio');
-    audio.className = 'prev-audio';
-    audio.controls  = true;
-    body.innerHTML  = '';
-    body.appendChild(audio);
-    audio.src = api.previewUrl(id);
-  },
-
-  async _showText(body, id) {
-    try {
-      const res  = await fetch(api.previewUrl(id));
-      if (!res.ok) throw new Error(res.statusText);
-      const text = await res.text();
-      const pre  = document.createElement('pre');
-      pre.className   = 'prev-text';
-      pre.textContent = text.length > 500_000 ? text.slice(0, 500_000) + '\n\n[…]' : text;
-      body.innerHTML  = '';
-      body.appendChild(pre);
-    } catch {
-      body.innerHTML = `<div class="prev-error">${escHtml(t('preview.load_error'))}</div>`;
+    const pref = this._getPreference(ext);
+    if (pref !== null) {
+      this._doOpen(fileId, pref);
+      toast(pref ? t('preview.opening_with', { prog: pref }) : t('preview.opening_os'));
+    } else {
+      this._showOpenDialog(fileId, fileName, ext, filePath);
     }
-  },
-
-  _showFallback(body) {
-    body.innerHTML = `<div class="prev-no-preview">${escHtml(t('preview.no_preview'))}</div>`;
   },
 };
 
@@ -909,13 +827,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (link && link.dataset.path) fsBrowser.navigate(link.dataset.path);
   });
 
-  // Escape key closes the preview modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !document.getElementById('preview-modal').classList.contains('hidden')) {
-      previewModal.close();
-    }
-  });
-
   // Backspace key while modal is open → go up one level (not inside input fields)
   document.addEventListener('keydown', (e) => {
     if (document.getElementById('fs-modal').classList.contains('hidden')) return;
@@ -926,10 +837,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     else if (!fsBrowser._currentPath) { /* already at drives */ }
     else fsBrowser.showDrives();
   });
-
-  // ── Preview modal close buttons ───────────────────────────────────────────
-  document.getElementById('prev-btn-close').addEventListener('click',  () => previewModal.close());
-  document.getElementById('prev-btn-close2').addEventListener('click', () => previewModal.close());
 
   // ✕ button inside modal header
   document.getElementById('fs-btn-close').addEventListener('click', () => {
