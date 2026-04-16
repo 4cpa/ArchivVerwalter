@@ -90,6 +90,7 @@ const TRANSLATIONS = {
     'dups.resolved':     '{count} Duplikat(e) gel\u00f6scht',
     'dups.log_resolved': 'Duplikatgruppe aufgel\u00f6st: {count} Dateien gel\u00f6scht',
     'dups.load_error':   'Fehler: {msg}',
+    'dups.refreshed':    'Aktualisiert \u2014 {count} Gruppe(n) gefunden',
     'dups.dl_title':     'Herunterladen',
     'dups.groups':       'Gruppen',
 
@@ -204,6 +205,7 @@ const TRANSLATIONS = {
     'dups.resolved':     '{count} duplicate(s) deleted',
     'dups.log_resolved': 'Duplicate group resolved: {count} files deleted',
     'dups.load_error':   'Error: {msg}',
+    'dups.refreshed':    'Refreshed \u2014 {count} group(s) found',
     'dups.dl_title':     'Download',
     'dups.groups':       'groups',
 
@@ -316,6 +318,7 @@ const TRANSLATIONS = {
     'dups.resolved':     '{count} doublon(s) supprim\u00e9(s)',
     'dups.log_resolved': 'Groupe de doublons r\u00e9solu\u00a0: {count} fichiers supprim\u00e9s',
     'dups.load_error':   'Erreur\u00a0: {msg}',
+    'dups.refreshed':    'Actualis\u00e9 \u2014 {count} groupe(s) trouv\u00e9(s)',
     'dups.dl_title':     'T\u00e9l\u00e9charger',
     'dups.groups':       'groupes',
 

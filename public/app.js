@@ -292,7 +292,8 @@ function keepActionHtml(fileId, groupIdx, isKeeper) {
 }
 
 function renderDuplicates(groups) {
-  const wrap = document.getElementById('dup-list');
+  const wrap   = document.getElementById('dup-list');
+  const colBar = document.getElementById('dup-col-bar');
   state.dupGroups = groups;
 
   // Clamp page to valid range after data update
@@ -301,9 +302,23 @@ function renderDuplicates(groups) {
 
   if (!groups.length) {
     wrap.innerHTML = `<div class="dup-empty">${escHtml(t('dups.success'))}</div>`;
+    if (colBar) colBar.hidden = true;
     wrap._groups = [];
     renderDupPagination();
     return;
+  }
+
+  // Single column header above the list
+  if (colBar) {
+    colBar.innerHTML = `<div class="dup-row dup-col-hdr">
+      <div class="dr-action"></div>
+      <div class="dr-name">${escHtml(t('files.col_name'))}</div>
+      <div class="dr-archive">${escHtml(t('files.col_archive'))}</div>
+      <div class="dr-size">${escHtml(t('files.col_size'))}</div>
+      <div class="dr-date">${escHtml(t('files.col_modified'))}</div>
+      <div class="dr-dl"></div>
+    </div>`;
+    colBar.hidden = false;
   }
 
   const start      = (state.dupPage - 1) * state.dupLimit;
@@ -335,14 +350,6 @@ function renderDuplicates(groups) {
                   data-action="resolve-all" data-group="${realGi}">
             ${escHtml(t('dups.resolve_btn'))}
           </button>
-        </div>
-        <div class="dup-row dup-col-hdr">
-          <div class="dr-action"></div>
-          <div class="dr-name">${escHtml(t('files.col_name'))}</div>
-          <div class="dr-archive">${escHtml(t('files.col_archive'))}</div>
-          <div class="dr-size">${escHtml(t('files.col_size'))}</div>
-          <div class="dr-date">${escHtml(t('files.col_modified'))}</div>
-          <div class="dr-dl"></div>
         </div>
         ${rows}
       </div>`;
@@ -410,13 +417,18 @@ async function loadFiles() {
 
 async function loadDuplicates(resetPage = false) {
   if (resetPage) state.dupPage = 1;
+  const btn = document.getElementById('btn-refresh-dups');
+  if (btn) btn.disabled = true;
   try {
     const groups = await api.getDuplicates();
     renderDuplicates(groups);
     const badge = document.getElementById('dup-badge');
     badge.textContent = groups.length > 0 ? String(groups.length) : '';
+    if (resetPage) toast(t('dups.refreshed', { count: groups.length }), 'success');
   } catch (err) {
     toast(t('dups.load_error', { msg: err.message }), 'error');
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

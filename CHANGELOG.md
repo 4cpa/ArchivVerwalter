@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Duplikate-Ansicht: Spalten-Header-Balken (Aktion / Name / Archiv / Grösse / Geändert)
+  erscheint jetzt einmalig als fixer Balken über der scrollbaren Gruppenliste,
+  anstatt innerhalb jeder einzelnen Duplikat-Gruppe wiederholt.
+- Aktualisieren-Button in der Duplikate-Ansicht: Button wird während des Ladens
+  deaktiviert und zeigt nach erfolgreichem Abruf einen Toast mit der Gruppenanzahl
+  an, sodass die Wirkung des Buttons sichtbar ist.
+
 ---
 
 ## [1.2.26] — 2026-04-16
