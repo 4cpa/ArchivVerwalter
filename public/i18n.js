@@ -119,6 +119,11 @@ const TRANSLATIONS = {
     'fs.no_drives':   'Keine Laufwerke gefunden',
     'fs.err_browse':  'Fehler: {msg}',
 
+    // File preview modal
+    'preview.loading':    'L\u00e4dt\u2026',
+    'preview.no_preview': 'F\u00fcr diesen Dateityp ist keine Vorschau verf\u00fcgbar.',
+    'preview.load_error': 'Vorschau konnte nicht geladen werden.',
+
     // General errors
     'error.generic':      'Fehler: {msg}',
   },
@@ -233,6 +238,11 @@ const TRANSLATIONS = {
     'fs.no_drives':   'No drives found',
     'fs.err_browse':  'Error: {msg}',
 
+    // File preview modal
+    'preview.loading':    'Loading\u2026',
+    'preview.no_preview': 'No preview available for this file type.',
+    'preview.load_error': 'Failed to load preview.',
+
     'error.generic':      'Error: {msg}',
   },
 
@@ -345,6 +355,11 @@ const TRANSLATIONS = {
     'fs.no_dirs':     'Aucun sous-dossier',
     'fs.no_drives':   'Aucun lecteur trouv\u00e9',
     'fs.err_browse':  'Erreur\u00a0: {msg}',
+
+    // File preview modal
+    'preview.loading':    'Chargement\u2026',
+    'preview.no_preview': 'Aucun aper\u00e7u disponible pour ce type de fichier.',
+    'preview.load_error': 'Impossible de charger l\u2019aper\u00e7u.',
 
     'error.generic':      'Erreur\u00a0: {msg}',
   },

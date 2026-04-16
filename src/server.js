@@ -426,8 +426,21 @@ function createApp(db) {
   app.get('/api/files/:id/preview', async (req, res) => {
     const id = parseInt(req.params.id, 10);
     try {
-      const file = await db.get('SELECT path, name FROM files WHERE id = ?', [id]);
+      const file = await db.get('SELECT path, name, ext FROM files WHERE id = ?', [id]);
       if (!file) return res.status(404).json({ error: 'File not found' });
+
+      // Prevent MIME-type sniffing and restrict framing to same origin
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('X-Frame-Options', 'SAMEORIGIN');
+
+      // Server-side executable types must never be rendered inline by a browser.
+      // Force a download so they can never accidentally be "executed" via a direct URL.
+      const ext = (file.ext || '').toLowerCase();
+      const FORCE_DOWNLOAD = new Set(['html', 'htm', 'php', 'asp', 'aspx', 'cgi', 'pl', 'rb']);
+      if (FORCE_DOWNLOAD.has(ext)) {
+        return res.download(file.path, file.name);
+      }
+
       res.sendFile(file.path);
     } catch (err) {
       logger.error(err.message);

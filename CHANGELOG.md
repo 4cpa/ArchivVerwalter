@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.28] — 2026-04-16
+
+### Changed
+- Datei-Vorschau öffnet keine neuen Browser-Tabs mehr (`window.open`) — stattdessen
+  wird ein In-App-Modal verwendet, das Bilder (`<img>`), PDFs (`<iframe sandbox>`),
+  Text/Code (`fetch` → `<pre>`, nie als HTML gerendert), Video und Audio nativ anzeigt.
+  Nicht vorschaubare Dateitypen zeigen einen Hinweis mit Download-Button.
+- Vorschau-Endpoint (`/api/files/:id/preview`) erhält Security-Header:
+  `X-Content-Type-Options: nosniff` und `X-Frame-Options: SAMEORIGIN`.
+  Server-seitig ausführbare Typen (`.html`, `.php`, `.asp`, `.cgi` usw.) werden
+  zwingend als Download gesendet, nie inline gerendert.
+- Escape-Taste schliesst das Vorschau-Modal; laufende Medien werden beim Schliessen
+  gestoppt.
+- Übersetzungen (DE / EN / FR) für Vorschau-Texte ergänzt.
+
+---
+
 ## [1.2.27] — 2026-04-16
 
 ### Fixed
