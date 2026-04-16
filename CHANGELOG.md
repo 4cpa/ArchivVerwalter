@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.26] — 2026-04-16
+
+### Fixed
+- Windows-Installer: `useZip: true` (v1.2.25) rückgängig gemacht — electron-builder
+  26.x kann ZIP-Pakete in NSIS-Installern nicht korrekt entpacken; die Installation
+  brach mit „Installationsprogramm kann die ZIP nicht entpacken" ab. Zurück auf 7z.
+  Hintergrund: das ursprüngliche Defender-Problem (Sperren von
+  `Uninstall ArchivVerwalter.exe` im Temp-Verzeichnis) erfordert Code-Signing als
+  dauerhafte Lösung; kurzfristiger Workaround für Endnutzer ist „Ignorieren" im
+  Fehler-Dialog, damit die Installation durchläuft.
+
+---
+
 ## [1.2.25] — 2026-04-16
 
 ### Fixed
