@@ -89,6 +89,7 @@ const api = {
 
   downloadUrl: (id) => `/api/files/${id}/download`,
   previewUrl:  (id) => `/api/files/${id}/preview`,
+  openFileUrl: (id) => `/api/files/${id}/open`,
 };
 
 /* ── Application state ────────────────────────────────────────────────────── */
@@ -316,7 +317,7 @@ function renderDuplicates(groups) {
       <div class="dr-archive">${escHtml(t('files.col_archive'))}</div>
       <div class="dr-size">${escHtml(t('files.col_size'))}</div>
       <div class="dr-date">${escHtml(t('files.col_modified'))}</div>
-      <div class="dr-dl"></div>
+      <div class="dr-acts"></div>
     </div>`;
     colBar.hidden = false;
   }
@@ -336,8 +337,17 @@ function renderDuplicates(groups) {
         <div class="dr-archive">${escHtml(f.archive_name)}</div>
         <div class="dr-size">${formatSize(f.size)}</div>
         <div class="dr-date">${formatDate(f.modified_at)}</div>
-        <div class="dr-dl"><a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
-          title="${escHtml(t('dups.dl_title'))}" download>\u2193</a></div>
+        <div class="dr-acts">
+          <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
+             title="${escHtml(t('dups.dl_title'))}" download>\u2193</a>
+          <button class="btn-icon-sm" data-action="dup-copy-path"
+                  data-path="${escHtml(f.path)}"
+                  title="${escHtml(t('files.copy_title'))}">\u2398</button>
+          <button class="btn-icon-sm" data-action="dup-preview"
+                  data-id="${f.id}" data-name="${escHtml(f.name)}"
+                  data-ext="${escHtml(f.ext || '')}" data-path="${escHtml(f.path)}"
+                  title="${escHtml(t('files.preview_title'))}">&#128065;</button>
+        </div>
       </div>`;
     }).join('');
 
@@ -666,8 +676,114 @@ const previewModal = {
   // Native browser audio player
   _AUDIO_EXTS: new Set(['mp3','wav','ogg','flac','m4a','aac','opus']),
 
-  open(fileId, fileName, fileExt) {
+  _PREFS_KEY: 'av_open_with',
+
+  _getPreference(ext) {
+    try {
+      const p = JSON.parse(localStorage.getItem(this._PREFS_KEY) || '{}');
+      return ext in p ? p[ext] : null; // null = never set; '' = OS default
+    } catch { return null; }
+  },
+
+  _savePreference(ext, prog) {
+    try {
+      const p = JSON.parse(localStorage.getItem(this._PREFS_KEY) || '{}');
+      p[ext] = prog;
+      localStorage.setItem(this._PREFS_KEY, JSON.stringify(p));
+    } catch {}
+  },
+
+  async _doOpen(id, program = '') {
+    try {
+      const url = program
+        ? `${api.openFileUrl(id)}?program=${encodeURIComponent(program)}`
+        : api.openFileUrl(id);
+      await fetch(url);
+    } catch {
+      toast(t('preview.open_os_error'), 'error');
+    }
+  },
+
+  _showOpenDialog(id, fileName, ext, filePath) {
+    const extLabel = ext ? `.${ext}` : t('preview.this_type');
+    const bg = document.createElement('div');
+    bg.className = 'overlay-bg';
+    bg.innerHTML = `
+      <div class="dialog open-with-dlg">
+        <h3>${escHtml(t('preview.open_with_title'))}</h3>
+        <p class="open-with-filename">${escHtml(fileName)}</p>
+        <p>${escHtml(t('preview.no_viewer'))}</p>
+        <div class="open-with-row">
+          <button class="btn btn-primary" id="owDefault">${escHtml(t('preview.open_default'))}</button>
+        </div>
+        <div class="open-with-row">
+          <input type="text" id="owProgram" class="ow-input" placeholder="${escHtml(t('preview.open_custom_ph'))}">
+          <button class="btn" id="owOpen">${escHtml(t('preview.open_btn'))}</button>
+        </div>
+        <label class="open-with-always">
+          <input type="checkbox" id="owAlways">
+          ${escHtml(t('preview.always_for', { ext: extLabel }))}
+        </label>
+        <div class="dialog-btns">
+          <button class="btn" id="owCopyPath">${escHtml(t('preview.copy_path'))}</button>
+          <button class="btn" id="owClose">${escHtml(t('btn.cancel'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(bg);
+
+    const close   = () => bg.remove();
+    const always  = () => bg.querySelector('#owAlways').checked;
+    const progVal = () => bg.querySelector('#owProgram').value.trim();
+
+    bg.querySelector('#owDefault').onclick = async () => {
+      if (always()) this._savePreference(ext, '');
+      close();
+      await this._doOpen(id, '');
+      toast(t('preview.opening_os'));
+    };
+
+    const doCustomOpen = async () => {
+      const prog = progVal();
+      if (!prog) return;
+      if (always()) this._savePreference(ext, prog);
+      close();
+      await this._doOpen(id, prog);
+      toast(t('preview.opening_with', { prog }));
+    };
+    bg.querySelector('#owOpen').onclick = doCustomOpen;
+    bg.querySelector('#owProgram').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doCustomOpen();
+    });
+
+    bg.querySelector('#owCopyPath').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(filePath);
+        toast(t('files.copied'), 'success');
+      } catch { toast(t('files.copy_failed'), 'error'); }
+      close();
+    };
+
+    bg.querySelector('#owClose').onclick = close;
+    bg.addEventListener('click', e => { if (e.target === bg) close(); });
+  },
+
+  open(fileId, fileName, fileExt, filePath = '') {
     const ext = (fileExt || '').toLowerCase();
+
+    // Non-web-viewable: use stored preference or show the open-with dialog
+    if (!this._IMG_EXTS.has(ext) && !this._PDF_EXTS.has(ext) &&
+        !this._VIDEO_EXTS.has(ext) && !this._AUDIO_EXTS.has(ext) &&
+        !this._TEXT_EXTS.has(ext)) {
+      const pref = this._getPreference(ext);
+      if (pref !== null) {
+        this._doOpen(fileId, pref);
+        toast(pref ? t('preview.opening_with', { prog: pref }) : t('preview.opening_os'));
+      } else {
+        this._showOpenDialog(fileId, fileName, ext, filePath);
+      }
+      return;
+    }
+
     document.getElementById('preview-modal').classList.remove('hidden');
     document.getElementById('prev-modal-title').textContent = fileName;
     const dl = document.getElementById('prev-btn-download');
@@ -680,8 +796,7 @@ const previewModal = {
     else if (this._PDF_EXTS.has(ext))   this._showPdf(body, fileId);
     else if (this._VIDEO_EXTS.has(ext)) this._showVideo(body, fileId);
     else if (this._AUDIO_EXTS.has(ext)) this._showAudio(body, fileId);
-    else if (this._TEXT_EXTS.has(ext))  this._showText(body, fileId);
-    else                                 this._showFallback(body);
+    else                                 this._showText(body, fileId);
   },
 
   close() {
@@ -958,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (action === 'preview') {
       const id   = parseInt(e.target.dataset.id, 10);
       const file = state.files.find(f => f.id === id);
-      if (file) previewModal.open(id, file.name, file.ext || '');
+      if (file) previewModal.open(id, file.name, file.ext || '', file.path || '');
     }
 
     if (action === 'delete-file') {
@@ -985,8 +1100,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Duplicates view ───────────────────────────────────────────────────────
   document.getElementById('dup-list').addEventListener('click', async (e) => {
-    const action   = e.target.dataset.action;
-    const groupIdx = parseInt(e.target.dataset.group, 10);
+    const btn    = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+
+    if (action === 'dup-copy-path') {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.path);
+        toast(t('files.copied'), 'success');
+      } catch { toast(t('files.copy_failed'), 'error'); }
+      return;
+    }
+
+    if (action === 'dup-preview') {
+      previewModal.open(parseInt(btn.dataset.id, 10), btn.dataset.name, btn.dataset.ext, btn.dataset.path);
+      return;
+    }
+
+    const groupIdx = parseInt(btn.dataset.group, 10);
     const wrap     = document.getElementById('dup-list');
     const groups   = wrap._groups;
     if (!groups || isNaN(groupIdx)) return;
@@ -994,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Mark a different file as keeper
     if (action === 'keep') {
-      const keepId  = parseInt(e.target.dataset.keep, 10);
+      const keepId  = parseInt(btn.dataset.keep, 10);
       const rows    = [...document.querySelectorAll(`div.dup-row[data-group="${groupIdx}"]`)];
       const btnIds  = new Map(rows.map(r => {
         const b = r.querySelector('[data-action="keep"]');

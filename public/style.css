@@ -453,7 +453,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 /* Grid-based rows — immune to table-layout bugs */
 .dup-row {
   display: grid;
-  grid-template-columns: 110px 1fr 160px 90px 110px 40px;
+  grid-template-columns: 110px 1fr 160px 90px 110px 86px;
   align-items: center;
   border-bottom: 1px solid var(--border);
   color: #212529;
@@ -485,7 +485,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 /* Cells */
 .dr-action { }
 .dr-size, .dr-date { font-variant-numeric: tabular-nums; }
-.dr-dl { text-align: center; }
+.dr-acts { display: flex; gap: 3px; align-items: center; padding: 6px 8px !important; }
 .dup-keeping { color: #1a7f3c; font-weight: 600; }
 .dup-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
 
@@ -555,8 +555,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   box-shadow: 0 8px 32px rgba(0,0,0,.2);
 }
 .dialog h3 { margin-bottom: 10px; }
-.dialog p  { color: var(--text-muted); font-size: .85rem; margin-bottom: 18px; }
-.dialog-btns { display: flex; justify-content: flex-end; gap: 8px; }
+.dialog p  { color: var(--text-muted); font-size: .85rem; margin-bottom: 14px; }
+.dialog-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.open-with-dlg { min-width: 380px; max-width: 480px; }
+.open-with-filename { font-weight: 600; color: var(--text) !important; word-break: break-all; }
+.open-with-row { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.open-with-row .btn { white-space: nowrap; }
+.ow-input {
+  flex: 1; padding: 5px 8px; border: 1px solid var(--border);
+  border-radius: 4px; font-size: .85rem; background: var(--surface); color: var(--text);
+}
+.ow-input:focus { outline: none; border-color: var(--primary); }
+.open-with-always { display: flex; align-items: center; gap: 6px; font-size: .82rem; cursor: pointer; color: var(--text-muted); }
 
 /* ── Scrollbars ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

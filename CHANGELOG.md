@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.29] — 2026-04-16
+
+### Added
+- **Öffnen-mit-Dialog** für nicht-vorschaubare Dateitypen: statt des modalen Fensters
+  erscheint ein Dialog mit drei Optionen — Standardprogramm, beliebiges Programm per
+  Eingabe, Pfad kopieren.
+- **Programm-Präferenz pro Dateityp** (localStorage `av_open_with`): einmal gewähltes
+  Programm wird gespeichert und beim nächsten Klick direkt verwendet.
+- **Drei Aktions-Buttons** in der Duplikate-Ansicht: Download (↓), Pfad kopieren (⌘),
+  Vorschau/Öffnen (👁) — ersetzt den bisherigen einzelnen Download-Button.
+- Backend: `/api/files/:id/open` akzeptiert optionalen `?program=`-Parameter zum
+  Öffnen mit einem bestimmten Programm (Windows / macOS / Linux).
+
+### Fixed
+- Duplikate-Aktionsspalte war auf 40 px begrenzt — Button wurde abgeschnitten und
+  zeigte fehlerhafte Darstellung; Spalte auf 86 px erweitert, drei Buttons korrekt
+  im Flex-Container.
+
+### Changed
+- CI-Workflow überspringt Tests bei `chore(release):`-Commits (Tests laufen bereits
+  via `preversion`-Hook).
+- Übersetzungen (DE / EN / FR) für Öffnen-mit-Dialog ergänzt.
+
+---
+
 ## [1.2.28] — 2026-04-16
 
 ### Changed

@@ -21,14 +21,24 @@ const SORT_COLS = new Set(['name', 'size', 'ext', 'modified_at', 'indexed_at']);
 function openWithOS(filePath) {
   const p = filePath;
   if (process.platform === 'win32') {
-    // `start` is a CMD shell built-in; shell:true is required on Windows
     const safe = p.replace(/"/g, '""');
     exec(`start "" "${safe}"`, { shell: true });
   } else if (process.platform === 'darwin') {
     exec(`open "${p.replace(/"/g, '\\"')}"`);
   } else {
-    // Linux and other POSIX
     exec(`xdg-open "${p.replace(/"/g, '\\"')}"`);
+  }
+}
+
+function openWithProgram(filePath, program) {
+  const f = filePath.replace(/"/g, '\\"');
+  const g = program.replace(/"/g, '\\"');
+  if (process.platform === 'win32') {
+    exec(`"${program.replace(/"/g, '""')}" "${filePath.replace(/"/g, '""')}"`, { shell: true });
+  } else if (process.platform === 'darwin') {
+    exec(`open -a "${g}" "${f}"`);
+  } else {
+    exec(`"${g}" "${f}"`);
   }
 }
 
@@ -449,13 +459,18 @@ function createApp(db) {
   });
 
   app.get('/api/files/:id/open', async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id      = parseInt(req.params.id, 10);
+    const program = (req.query.program || '').trim();
     try {
       const file = await db.get('SELECT path FROM files WHERE id = ?', [id]);
       if (!file) return res.status(404).json({ error: 'File not found' });
 
-      openWithOS(file.path);
-      res.json({ message: 'Opening file', path: file.path });
+      if (program) {
+        openWithProgram(file.path, program);
+      } else {
+        openWithOS(file.path);
+      }
+      res.json({ ok: true });
     } catch (err) {
       logger.error(err.message);
       res.status(500).json({ error: err.message });
