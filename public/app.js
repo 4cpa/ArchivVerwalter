@@ -108,6 +108,7 @@ const state = {
   limit:           50,
   filters:         { name: '', ext: '', dups: false },
   sort:            { col: 'name', order: 'asc' },
+  dateCol:         'modified_at',   // 'modified_at' | 'created_at'
   view:            'files',
   scanPollers:     {},
   activityLog:     [],
@@ -201,7 +202,7 @@ function renderFiles() {
         <td>${ext}</td>
         <td>${formatSize(f.size)}</td>
         <td>${escHtml(f.archive_name)}</td>
-        <td>${formatDate(f.modified_at)}</td>
+        <td>${formatDate(f[state.dateCol])}</td>
         <td>
           <div class="cell-actions">
             <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
@@ -258,7 +259,16 @@ function renderPagination() {
   wrap.innerHTML = pages.join('');
 }
 
+function syncDateHeader() {
+  const th    = document.getElementById('th-date');
+  const label = document.getElementById('th-date-label');
+  if (!th || !label) return;
+  th.dataset.col    = state.dateCol;
+  label.textContent = t(state.dateCol === 'modified_at' ? 'files.col_modified' : 'files.col_created');
+}
+
 function updateSortHeaders() {
+  syncDateHeader();
   document.querySelectorAll('.file-table th.sortable').forEach(th => {
     th.classList.toggle('sorted', th.dataset.col === state.sort.col);
     const icon = th.querySelector('.sort-icon');
@@ -1170,6 +1180,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('filter-dups').checked = false;
     renderArchives();
     await loadFiles();
+  });
+
+  // ── Refresh files ─────────────────────────────────────────────────────────
+  document.getElementById('btn-refresh-files').addEventListener('click', () => loadFiles());
+
+  // ── Date column toggle ────────────────────────────────────────────────────
+  document.getElementById('btn-toggle-date').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const oldCol = state.dateCol;
+    state.dateCol = oldCol === 'modified_at' ? 'created_at' : 'modified_at';
+    if (state.sort.col === oldCol) {
+      state.sort.col = state.dateCol;
+      await loadFiles();
+    } else {
+      syncDateHeader();
+      updateSortHeaders();
+      renderFiles();
+    }
   });
 
   // ── Sort columns ──────────────────────────────────────────────────────────

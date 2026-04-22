@@ -104,6 +104,8 @@
           <button class="btn btn-sm" id="btn-reset-filters"
                   data-i18n="btn.reset">Zurücksetzen</button>
         </div>
+        <button class="btn btn-sm" id="btn-refresh-files"
+                data-i18n="btn.refresh">Aktualisieren</button>
         <span class="file-stats" id="file-stats"></span>
       </div>
 
@@ -139,8 +141,10 @@
                 <span class="sort-icon">↕</span>
               </th>
               <th><span data-i18n="files.col_archive">Archiv</span></th>
-              <th class="sortable" data-col="modified_at">
-                <span data-i18n="files.col_modified">Geändert</span>
+              <th id="th-date" class="sortable" data-col="modified_at">
+                <span id="th-date-label" data-i18n="files.col_modified">Geändert</span>
+                <button id="btn-toggle-date" class="btn-toggle-date"
+                        title="Erstellt / Geändert wechseln">⇄</button>
                 <span class="sort-icon">↕</span>
               </th>
               <th><span data-i18n="files.col_actions">Aktionen</span></th>

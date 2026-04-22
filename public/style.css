@@ -336,6 +336,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .file-table thead th.sortable:hover { color: var(--primary); }
 .file-table thead th.sorted { color: var(--primary); }
 .sort-icon { font-size: .7rem; opacity: .5; }
+.btn-toggle-date {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .65rem;
+  line-height: 1;
+  padding: 1px 3px;
+  margin: 0 2px;
+  vertical-align: middle;
+  transition: color .12s, border-color .12s;
+}
+.btn-toggle-date:hover { color: var(--primary); border-color: var(--primary); }
 .file-table tbody tr { border-bottom: 1px solid var(--border); }
 .file-table tbody tr:hover { background: #f8faff; }
 .file-table tbody td { padding: 7px 14px; font-size: .82rem; }

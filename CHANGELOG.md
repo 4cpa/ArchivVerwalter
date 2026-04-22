@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.39] — 2026-04-22
+
+### Added
+- **Datum-Spalte mit Toggle** in der Dateien-Ansicht: Klick auf `⇄` im Spaltenkopf
+  wechselt zwischen «Geändert» (`modified_at`) und «Erstellt» (`created_at`);
+  Sortierung folgt automatisch mit. Übersetzungen DE/EN/FR ergänzt.
+- **Aktualisieren-Button** in der Toolbar der Dateien-Ansicht.
+
+### Fixed
+- **Log-Dateinamen** enthalten jetzt Archivname und Zeitstempel
+  (z.B. `statistik_DataBackup_2026-04-22_18-30.txt`) — Downloads müssen nicht
+  mehr manuell umbenannt werden.
+- `created_at` als Sortierspalte im Backend freigegeben.
+
+---
+
 ## [1.2.38] — 2026-04-22
 
 ---

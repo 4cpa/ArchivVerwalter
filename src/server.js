@@ -10,7 +10,7 @@ const { findDuplicates, deleteFile, resolveGroup, countDuplicateGroups } = requi
 const logger = require('./logger');
 
 // Whitelisted sort columns to prevent SQL injection
-const SORT_COLS = new Set(['name', 'size', 'ext', 'modified_at', 'indexed_at']);
+const SORT_COLS = new Set(['name', 'size', 'ext', 'modified_at', 'created_at', 'indexed_at']);
 
 /**
  * Open a file with the default OS application.
@@ -803,9 +803,13 @@ function createApp(db) {
       lines.push('');
 
       const content  = lines.join('\n');
+      const ts = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+      const safeSlug = (str) => str
+        .replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe').replace(/[üÜ]/g, 'ue').replace(/ß/g, 'ss')
+        .replace(/[^A-Za-z0-9-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, '').slice(0, 40);
       const filename = archiveId
-        ? `statistik-archiv-${archiveId}.txt`
-        : 'statistik-alle-archive.txt';
+        ? `statistik_${safeSlug(archives[0]?.name || String(archiveId))}_${ts}.txt`
+        : `statistik_alle-archive_${ts}.txt`;
 
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
