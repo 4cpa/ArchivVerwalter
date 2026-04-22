@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.37] — 2026-04-22
 
+### Fixed
+- **Scanner-Browser / Laufwerkliste** — Netzwerkressourcen wurden nicht angezeigt:
+  - **Windows**: Netzwerkverbindungen *ohne* zugewiesenen Laufwerksbuchstaben
+    (UNC-Pfade wie `\\Server\Freigabe`) werden jetzt über
+    `Win32_NetworkConnection` erkannt und in der Liste angezeigt.
+  - **Linux (GVFS)**: GNOME-Virtual-Filesystem-Mounts (`fuse.gvfsd-fuse`)
+    werden erkannt; die einzelnen Freigaben erscheinen als individuelle
+    Einträge mit lesbarem Label.
+  - **Linux**: `\040`-Escape (Leerzeichen) in `/proc/mounts`-Pfaden wird
+    korrekt dekodiert.
+- Unterstützte Netzwerk-Dateisystemtypen ergänzt: `nfs3`, `fuse.rclone`,
+  `fuse.s3fs`, `fuse.curlftpfs`, `fuse.ftpfs`, `virtiofs`, `9p`.
+- Badge-Erkennung im Browser-Dialog: GVFS/rclone/ftp/virtiofs/9p werden
+  korrekt als `NET` klassifiziert.
+
 ---
 
 ## [1.2.36] — 2026-04-22

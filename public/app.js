@@ -613,7 +613,7 @@ const fsBrowser = {
         // Use text badges instead of emoji — emoji rendering is unreliable
         // across Windows font configurations (e.g. U+1F5B4 🖴 is missing from
         // most Windows emoji fonts and renders as a broken placeholder).
-        const type = /netz|network|cifs|nfs|smb|sshfs|dav/i.test(lbl) ? 'net'
+        const type = /netz|network|cifs|nfs|smb|sshfs|dav|gvfs|rclone|ftp|virtiofs|9p/i.test(lbl) ? 'net'
                    : /usb|removable/i.test(lbl)                        ? 'usb'
                    : /cd|dvd/i.test(lbl)                               ? 'cd'
                    : 'hdd';

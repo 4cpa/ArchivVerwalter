@@ -80,10 +80,21 @@ function withTimeout(promise, ms) {
   ]);
 }
 
+/** Convert a GVFS share directory name (fuse.gvfsd-fuse) to a readable label. */
+function gvfsLabel(name) {
+  const share  = name.match(/share=([^,\s]+)/)?.[1];
+  const server = (name.match(/server=([^,\s]+)/) || name.match(/host=([^,\s]+)/))?.[1];
+  const proto  = name.split(':')[0]?.replace(/-/g, '/').toUpperCase() || 'NET';
+  if (share && server) return `${share} (${server})`;
+  if (share)  return share;
+  if (server) return `${proto} — ${server}`;
+  return name.length > 50 ? name.slice(0, 50) + '…' : name;
+}
+
 /**
  * Return an array of { label, path } objects for available drives/volumes.
  * Platform-aware: Windows uses WMIC for rich labels (USB/Network/Local),
- * Linux reads /proc/mounts to also catch network shares (CIFS/NFS/SSHFS),
+ * Linux reads /proc/mounts to also catch network shares (CIFS/NFS/SSHFS/GVFS),
  * macOS lists /Volumes/.
  */
 async function listDrives() {
@@ -127,6 +138,30 @@ async function listDrives() {
       drives.push({ label: extra ? `${l}: \u2014 ${extra}` : `${l}:`, path: `${l}:\\` });
     }
 
+    // Network connections without a drive letter (UNC-only, e.g. \\server\share).
+    // Win32_NetworkConnection covers ALL active net-use entries; skip those
+    // already shown via a drive letter above.
+    try {
+      const presentSet = new Set(present.map(l => l.toUpperCase()));
+      const ncOut = await withTimeout(runCmd(
+        'powershell -NoProfile -NonInteractive -Command "' +
+        'try { Get-CimInstance Win32_NetworkConnection -EA Stop } ' +
+        'catch { Get-WmiObject Win32_NetworkConnection } | ' +
+        'ForEach-Object { $_.LocalName + \'|\'+ $_.RemoteName }"',
+        { shell: true }
+      ), 6000);
+      for (const line of ncOut.split(/\r?\n/)) {
+        const sep = line.indexOf('|');
+        if (sep < 0) continue;
+        const local  = line.slice(0, sep).trim().toUpperCase();
+        const remote = line.slice(sep + 1).trim();
+        if (!remote.startsWith('\\\\')) continue;
+        if (local && presentSet.has(local[0])) continue; // letter already listed
+        const shareName = remote.split('\\').filter(Boolean).pop() || remote;
+        drives.push({ label: `${shareName} \u2014 Netzwerk (${remote})`, path: remote });
+      }
+    } catch { /* optional */ }
+
   // ── macOS ─────────────────────────────────────────────────────────────────
   } else if (process.platform === 'darwin') {
     drives.push({ label: '/ (Root)', path: '/' });
@@ -145,13 +180,38 @@ async function listDrives() {
     drives.push({ label: '/ (Root)', path: '/' });
 
     // Network mounts from /proc/mounts (CIFS=Windows shares, NFS, SSHFS, …)
-    const NET_FS = new Set(['cifs', 'smbfs', 'nfs', 'nfs4', 'fuse.sshfs', 'davfs', 'fuse.davfs2', 'glusterfs']);
+    // Standard network filesystems + rclone/s3/ftp FUSE mounts
+    const NET_FS = new Set([
+      'cifs', 'smbfs', 'nfs', 'nfs4', 'nfs3',
+      'fuse.sshfs', 'davfs', 'fuse.davfs2', 'glusterfs',
+      'fuse.rclone', 'fuse.s3fs', 'fuse.curlftpfs', 'fuse.ftpfs',
+      'virtiofs', '9p',
+    ]);
     try {
       const mounts = await fs.promises.readFile('/proc/mounts', 'utf8');
       for (const line of mounts.split('\n')) {
-        const [, mountpoint, fstype] = line.split(' ');
-        if (!mountpoint || !NET_FS.has(fstype)) continue;
-        if (mountpoint === '/') continue;
+        const parts = line.split(' ');
+        const fstype = parts[2];
+        // Unescape \040 (space) in mountpoint
+        const mountpoint = (parts[1] || '').replace(/\\040/g, ' ');
+        if (!mountpoint || mountpoint === '/') continue;
+
+        if (fstype === 'fuse.gvfsd-fuse') {
+          // GNOME virtual filesystem: each subdirectory is a separate share
+          try {
+            const shares = await withTimeout(
+              fs.promises.readdir(mountpoint, { withFileTypes: true }), 3000
+            );
+            for (const s of shares) {
+              if (!s.isDirectory() && !s.isSymbolicLink()) continue;
+              const label = gvfsLabel(s.name);
+              drives.push({ label: `${label} \u2014 Netzwerk`, path: path.join(mountpoint, s.name) });
+            }
+          } catch { /* skip */ }
+          continue;
+        }
+
+        if (!NET_FS.has(fstype)) continue;
         const name = path.basename(mountpoint);
         drives.push({ label: `${name} \u2014 ${fstype}`, path: mountpoint });
       }
