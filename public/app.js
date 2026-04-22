@@ -87,6 +87,12 @@ const api = {
   getDrives:  ()     => api.get('/api/fs/drives'),
   browse:     (p)    => api.get('/api/fs/browse?' + new URLSearchParams({ path: p })),
 
+  getStats:    ()        => api.get('/api/stats'),
+  statsBrowse: (id, p)   => api.get('/api/stats/browse?' + new URLSearchParams(
+    { archive: id, ...(p ? { path: p } : {}) }
+  )),
+  statsLogUrl: (id)      => id ? `/api/stats/log?archive=${id}` : '/api/stats/log',
+
   downloadUrl: (id) => `/api/files/${id}/download`,
   previewUrl:  (id) => `/api/files/${id}/preview`,
   openFileUrl: (id) => `/api/files/${id}/open`,
@@ -110,6 +116,9 @@ const state = {
   dupGroups:       [],
   dupPage:         1,
   dupLimit:        30,
+  statsData:            null,
+  statsBrowserArchive:  null,
+  statsBrowserPath:     null,
 };
 
 function log(msg) {
@@ -507,6 +516,7 @@ function switchView(viewName) {
 
   if (viewName === 'duplicates') loadDuplicates(true);
   if (viewName === 'monitor')    loadHealth();
+  if (viewName === 'stats')      loadStats();
 }
 
 /* ── Full re-render on language change ────────────────────────────────────── */
@@ -518,6 +528,7 @@ function rerender() {
     else renderDupPagination();
   }
   if (state.view === 'monitor') loadHealth();
+  if (state.view === 'stats' && state.statsData) renderStats(state.statsData);
   updatePathPlaceholder();
 
   // Refresh static labels that live outside data-i18n spans
@@ -780,6 +791,217 @@ const previewModal = {
     }
   },
 };
+
+/* ── Statistics: data loading ─────────────────────────────────────────────── */
+async function loadStats() {
+  const archivesEl = document.getElementById('stats-archives');
+  const summaryEl  = document.getElementById('stats-summary');
+  if (!archivesEl) return;
+  archivesEl.innerHTML =
+    `<div class="empty-state"><div class="icon">⏳</div><p>${escHtml(t('stats.loading'))}</p></div>`;
+  if (summaryEl) summaryEl.innerHTML = '';
+  try {
+    const data = await api.getStats();
+    state.statsData = data;
+    renderStats(data);
+  } catch (err) {
+    archivesEl.innerHTML =
+      `<div class="empty-state"><div class="icon">⚠</div><p>${escHtml(t('stats.load_error', { msg: err.message }))}</p></div>`;
+  }
+}
+
+/* ── Statistics: render archive cards ─────────────────────────────────────── */
+function renderStats(data) {
+  const summaryEl  = document.getElementById('stats-summary');
+  const archivesEl = document.getElementById('stats-archives');
+  if (!archivesEl) return;
+
+  if (summaryEl) {
+    const o = data.overall || {};
+    summaryEl.innerHTML = `<div class="health-grid">${[
+      { key: 'stats.card_archives', value: fmtNum(o.archives  || 0) },
+      { key: 'stats.card_files',    value: fmtNum(o.files     || 0) },
+      { key: 'stats.card_size',     value: formatSize(o.total_size || 0) },
+      { key: 'stats.card_dups',     value: fmtNum(data.dupGroups || 0),
+        cls: (data.dupGroups || 0) > 0 ? 'health-warn' : 'health-ok' },
+    ].map(c => `
+      <div class="health-card ${c.cls || ''}">
+        <div class="label">${escHtml(t(c.key))}</div>
+        <div class="value">${escHtml(String(c.value))}</div>
+      </div>`).join('')}</div>`;
+  }
+
+  if (!data.archives || !data.archives.length) {
+    archivesEl.innerHTML =
+      `<div class="empty-state"><div class="icon">📊</div><p>${escHtml(t('stats.no_archives'))}</p></div>`;
+    return;
+  }
+
+  archivesEl.innerHTML = data.archives.map(a => {
+    const maxSize  = a.extensions && a.extensions.length ? a.extensions[0].total_size : 1;
+    const extRows  = (a.extensions || []).slice(0, 8).map(e => {
+      const barW = maxSize > 0 ? Math.round((e.total_size / maxSize) * 100) : 0;
+      return `<tr>
+        <td class="stats-ext-name">.${escHtml(e.ext)}</td>
+        <td class="stats-ext-bar-wrap"><div class="stats-ext-bar" style="width:${barW}%"></div></td>
+        <td class="stats-ext-count">${escHtml(fmtNum(e.count))}</td>
+        <td class="stats-ext-size">${escHtml(formatSize(e.total_size))}</td>
+      </tr>`;
+    }).join('');
+
+    const isBrowsed = state.statsBrowserArchive === a.id;
+
+    return `
+      <div class="stats-archive-card${isBrowsed ? ' active' : ''}" id="stats-card-${a.id}">
+        <div class="stats-archive-card-hdr">
+          <div class="stats-archive-card-info">
+            <div class="stats-archive-title">${escHtml(a.name)}</div>
+            <div class="stats-archive-path">${escHtml(a.path)}</div>
+          </div>
+        </div>
+        <div class="stats-archive-body">
+          <div class="stats-archive-meta">
+            ${escHtml(fmtNum(a.file_count))}&nbsp;${escHtml(t('stats.files'))}
+            &middot; ${escHtml(formatSize(a.total_size))}
+          </div>
+          <div class="stats-archive-actions">
+            <a href="${escHtml(api.statsLogUrl(a.id))}" class="btn btn-sm" download>
+              &#8595; ${escHtml(t('stats.dl_archive'))}
+            </a>
+            <button class="btn btn-sm btn-primary" data-action="stats-browse" data-id="${a.id}">
+              &#128193; ${escHtml(t('stats.browse_btn'))}
+            </button>
+          </div>
+          ${extRows ? `
+          <div class="stats-ext-label">${escHtml(t('stats.types'))}</div>
+          <table class="stats-ext-table"><tbody>${extRows}</tbody></table>
+          ` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── Statistics: browse within archive ────────────────────────────────────── */
+async function statsBrowseTo(archiveId, dirPath) {
+  state.statsBrowserArchive = archiveId;
+  state.statsBrowserPath    = dirPath || null;
+
+  const el = document.getElementById('stats-browser');
+  if (!el) return;
+  el.innerHTML =
+    `<div class="stats-browser-empty"><span>${escHtml(t('stats.browser_loading'))}</span></div>`;
+
+  // Highlight active card
+  document.querySelectorAll('.stats-archive-card').forEach(c => {
+    c.classList.toggle('active', parseInt(c.id.replace('stats-card-', ''), 10) === archiveId);
+  });
+
+  try {
+    const data = await api.statsBrowse(archiveId, dirPath);
+    renderStatsBrowser(data);
+  } catch (err) {
+    el.innerHTML =
+      `<div class="stats-browser-empty"><span>${escHtml(t('stats.load_error', { msg: err.message }))}</span></div>`;
+  }
+}
+
+function renderStatsBrowser(data) {
+  const el = document.getElementById('stats-browser');
+  if (!el) return;
+
+  const archivePath = data.archivePath;
+  const curPath     = data.path;
+  const archiveId   = data.archiveId;
+
+  // Determine separator from stored paths
+  const sep = curPath.includes('\\') ? '\\' : '/';
+
+  // Build breadcrumb: archive root → ... → current dir
+  const relPath = curPath.startsWith(archivePath)
+    ? curPath.slice(archivePath.length).replace(/^[\\/]/, '')
+    : '';
+  const segs = relPath ? relPath.split(/[\\/]/).filter(Boolean) : [];
+  const archiveLabel = archivePath.replace(/[\\/]+$/, '').split(/[\\/]/).pop() || archivePath;
+
+  const crumbParts = [
+    { label: archiveLabel, path: archivePath },
+    ...segs.map((s, i) => ({
+      label: s,
+      path:  archivePath + sep + segs.slice(0, i + 1).join(sep),
+    })),
+  ];
+
+  const crumbHtml = crumbParts.map((part, i) => {
+    if (i < crumbParts.length - 1) {
+      return `<button class="stats-crumb-link" data-action="stats-crumb"
+                      data-archive="${archiveId}"
+                      data-path="${escHtml(part.path)}">${escHtml(part.label)}</button>`
+           + `<span class="crumb-sep">/</span>`;
+    }
+    return `<span class="crumb-cur">${escHtml(part.label)}</span>`;
+  }).join('');
+
+  const upBtn = data.parent
+    ? `<button class="btn-icon-sm" data-action="stats-crumb"
+               data-archive="${archiveId}"
+               data-path="${escHtml(data.parent)}"
+               title="${escHtml(t('stats.back'))}">&#8593;</button>`
+    : '';
+
+  const dirsHtml = data.dirs.map(d => `
+    <div class="stats-browser-entry is-dir"
+         data-action="stats-nav"
+         data-archive="${archiveId}"
+         data-path="${escHtml(d.path)}">
+      <span class="stats-browser-entry-icon">&#128193;</span>
+      <span class="stats-browser-entry-name">${escHtml(d.name)}</span>
+      <span class="stats-browser-entry-meta">
+        ${escHtml(fmtNum(d.file_count))}&nbsp;${escHtml(t('stats.files'))}
+        &middot; ${escHtml(formatSize(d.total_size))}
+      </span>
+    </div>`
+  ).join('');
+
+  const filesHtml = data.files.map(f => `
+    <div class="stats-browser-entry is-file">
+      <span class="stats-browser-entry-icon">&#128196;</span>
+      <span class="stats-browser-entry-name" title="${escHtml(f.path)}">${escHtml(f.name)}</span>
+      <span class="stats-browser-entry-meta">
+        ${escHtml(formatSize(f.size))} &middot; ${escHtml(formatDate(f.modified_at))}
+      </span>
+      <span class="stats-browser-entry-acts">
+        <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
+           title="${escHtml(t('files.dl_title'))}" download>&#8595;</a>
+        <button class="btn-icon-sm"
+                data-action="stats-preview"
+                data-id="${f.id}"
+                data-name="${escHtml(f.name)}"
+                data-ext="${escHtml(f.ext || '')}"
+                data-path="${escHtml(f.path)}"
+                title="${escHtml(t('files.preview_title'))}">&#128065;</button>
+      </span>
+    </div>`
+  ).join('');
+
+  const innerEmpty = (!data.dirs.length && !data.files.length)
+    ? `<div class="stats-browser-inner-empty">${escHtml(t('stats.browser_empty'))}</div>`
+    : '';
+
+  el.innerHTML = `
+    <div class="stats-browser-header">
+      <div class="stats-browser-crumb">
+        ${upBtn}
+        ${crumbHtml}
+      </div>
+      <a href="${escHtml(api.statsLogUrl(archiveId))}" class="btn btn-sm" download
+         title="${escHtml(t('stats.dl_archive'))}">&#8595; Log</a>
+    </div>
+    <div class="stats-browser-entries">
+      ${dirsHtml}
+      ${filesHtml}
+      ${innerEmpty}
+    </div>`;
+}
 
 /* ── Main init ────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1165,6 +1387,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── Refresh buttons ───────────────────────────────────────────────────────
   document.getElementById('btn-refresh-dups').addEventListener('click', () => loadDuplicates(true));
   document.getElementById('btn-refresh-health').addEventListener('click', loadHealth);
+  document.getElementById('btn-refresh-stats').addEventListener('click', loadStats);
+
+  // ── Statistics: archive card browse button ────────────────────────────────
+  document.getElementById('stats-archives').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="stats-browse"]');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    if (!id) return;
+    await statsBrowseTo(id, null);
+  });
+
+  // ── Statistics: tree browser navigation ──────────────────────────────────
+  document.getElementById('stats-browser').addEventListener('click', async (e) => {
+    const nav = e.target.closest('[data-action="stats-nav"]');
+    if (nav) {
+      await statsBrowseTo(parseInt(nav.dataset.archive, 10), nav.dataset.path);
+      return;
+    }
+    const crumb = e.target.closest('[data-action="stats-crumb"]');
+    if (crumb) {
+      await statsBrowseTo(parseInt(crumb.dataset.archive, 10), crumb.dataset.path);
+      return;
+    }
+    const prev = e.target.closest('[data-action="stats-preview"]');
+    if (prev) {
+      previewModal.open(
+        parseInt(prev.dataset.id, 10),
+        prev.dataset.name,
+        prev.dataset.ext,
+        prev.dataset.path
+      );
+    }
+  });
 
   // ── Initial data load ─────────────────────────────────────────────────────
   await Promise.all([loadHealth(), loadArchives()]);

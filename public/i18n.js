@@ -7,6 +7,7 @@ const TRANSLATIONS = {
     'nav.files':         'Dateien',
     'nav.duplicates':    'Duplikate',
     'nav.monitor':       'Monitor',
+    'nav.stats':         'Statistik',
 
     // Archives sidebar
     'arch.section':      'ARCHIVE',
@@ -135,6 +136,25 @@ const TRANSLATIONS = {
     'preview.this_type':       'diesen Dateityp',
     'preview.copy_path':       'Pfad kopieren',
 
+    // Statistics
+    'stats.title':           'Statistik',
+    'stats.dl_all':          'Log herunterladen',
+    'stats.dl_archive':      'Log dieses Archivs',
+    'stats.browse_btn':      'Durchsuchen',
+    'stats.browser_hint':    'Archiv auswählen, um zu durchsuchen',
+    'stats.browser_empty':   'Keine Dateien in diesem Verzeichnis.',
+    'stats.browser_loading': 'Lädt…',
+    'stats.back':            'Zurück',
+    'stats.files':           'Dateien',
+    'stats.card_archives':   'Archive',
+    'stats.card_files':      'Dateien',
+    'stats.card_size':       'Gesamtgrösse',
+    'stats.card_dups':       'Duplikat-Gruppen',
+    'stats.types':           'Dateitypen',
+    'stats.load_error':      'Fehler beim Laden: {msg}',
+    'stats.no_archives':     'Noch keine Archive vorhanden.',
+    'stats.loading':         'Lädt Statistik…',
+
     // General errors
     'error.generic':      'Fehler: {msg}',
   },
@@ -143,6 +163,7 @@ const TRANSLATIONS = {
     'nav.files':         'Files',
     'nav.duplicates':    'Duplicates',
     'nav.monitor':       'Monitor',
+    'nav.stats':         'Statistics',
 
     'arch.section':      'ARCHIVES',
     'arch.none':         'No archives yet',
@@ -265,6 +286,25 @@ const TRANSLATIONS = {
     'preview.this_type':       'this file type',
     'preview.copy_path':       'Copy path',
 
+    // Statistics
+    'stats.title':           'Statistics',
+    'stats.dl_all':          'Download log',
+    'stats.dl_archive':      'Archive log',
+    'stats.browse_btn':      'Browse',
+    'stats.browser_hint':    'Select an archive to browse',
+    'stats.browser_empty':   'No files in this directory.',
+    'stats.browser_loading': 'Loading…',
+    'stats.back':            'Back',
+    'stats.files':           'files',
+    'stats.card_archives':   'Archives',
+    'stats.card_files':      'Files',
+    'stats.card_size':       'Total size',
+    'stats.card_dups':       'Duplicate groups',
+    'stats.types':           'File types',
+    'stats.load_error':      'Error loading: {msg}',
+    'stats.no_archives':     'No archives yet.',
+    'stats.loading':         'Loading statistics…',
+
     'error.generic':      'Error: {msg}',
   },
 
@@ -272,6 +312,7 @@ const TRANSLATIONS = {
     'nav.files':         'Fichiers',
     'nav.duplicates':    'Doublons',
     'nav.monitor':       'Moniteur',
+    'nav.stats':         'Statistiques',
 
     'arch.section':      'ARCHIVES',
     'arch.none':         'Aucune archive',
@@ -394,6 +435,25 @@ const TRANSLATIONS = {
     'preview.this_type':       'ce type de fichier',
     'preview.copy_path':       'Copier le chemin',
 
+
+    // Statistics
+    'stats.title':           'Statistiques',
+    'stats.dl_all':          'Télécharger le journal',
+    'stats.dl_archive':      'Journal de l’archive',
+    'stats.browse_btn':      'Parcourir',
+    'stats.browser_hint':    'Sélectionner une archive à parcourir',
+    'stats.browser_empty':   'Aucun fichier dans ce répertoire.',
+    'stats.browser_loading': 'Chargement…',
+    'stats.back':            'Retour',
+    'stats.files':           'fichiers',
+    'stats.card_archives':   'Archives',
+    'stats.card_files':      'Fichiers',
+    'stats.card_size':       'Taille totale',
+    'stats.card_dups':       'Groupes de doublons',
+    'stats.types':           'Types de fichiers',
+    'stats.load_error':      'Erreur de chargement : {msg}',
+    'stats.no_archives':     'Aucune archive.',
+    'stats.loading':         'Chargement des statistiques…',
     'error.generic':      'Erreur\u00a0: {msg}',
   },
 };

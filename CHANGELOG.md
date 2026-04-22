@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.34] — 2026-04-22
+
+### Added
+- **Statistik-Ansicht** (neuer Menüpunkt in der Sidebar) mit Gesamtübersicht
+  (Archivanzahl, Dateianzahl, Gesamtgrösse, Duplikat-Gruppen) als Kacheln.
+- **Archiv-Karten** mit Dateipfad, Zähler, Gesamtgrösse und einer Balkengrafik
+  der Top-8-Dateitypen (relativ zur grössten Kategorie).
+- **Integrierter Datei-Browser**: navigierbarer Verzeichnisbaum aus dem Index —
+  Ordner mit Anzahl/Grösse, Dateien mit Datum, Download- und Vorschau-Button.
+  Breadcrumb-Navigation inkl. Elternordner-Schaltfläche.
+- **Log-Download** (`/api/stats/log`): generiert eine strukturierte Textdatei
+  mit allen Archiven, Dateitypen-Übersicht (Top 15) und vollständiger
+  geschachtelter Verzeichnisstruktur (Pfad, Grösse, Datum je Datei).
+  Pro Archiv-Karte auch ein individueller Log-Link.
+- Neue Backend-Endpunkte: `GET /api/stats`, `GET /api/stats/browse`,
+  `GET /api/stats/log` (optionaler `?archive=<id>`-Filter).
+- Vollständige Übersetzungen für DE, EN und FR.
+
+---
+
 ## [1.2.33] — 2026-04-16
 
 ---

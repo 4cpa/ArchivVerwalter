@@ -529,6 +529,233 @@ function createApp(db) {
     }
   });
 
+  // ── Statistics ────────────────────────────────────────────────────────────────
+
+  function fmtSizeText(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+  }
+
+  /** Overall + per-archive statistics with extension breakdown */
+  app.get('/api/stats', async (_req, res) => {
+    try {
+      const [overall, archives, extensions, dupGroups] = await Promise.all([
+        db.get(`
+          SELECT COUNT(DISTINCT a.id)       AS archives,
+                 COUNT(f.id)                AS files,
+                 COALESCE(SUM(f.size), 0)   AS total_size
+          FROM   archives a
+          LEFT JOIN files f ON f.archive_id = a.id
+        `),
+        db.all(`
+          SELECT a.id, a.name, a.path, a.added_at,
+                 COUNT(f.id)               AS file_count,
+                 COALESCE(SUM(f.size), 0)  AS total_size
+          FROM   archives a
+          LEFT JOIN files f ON f.archive_id = a.id
+          GROUP  BY a.id
+          ORDER  BY a.name COLLATE NOCASE
+        `),
+        db.all(`
+          SELECT ext,
+                 COUNT(*)               AS count,
+                 COALESCE(SUM(size), 0) AS total_size
+          FROM   files
+          WHERE  ext IS NOT NULL AND ext != ''
+          GROUP  BY ext
+          ORDER  BY total_size DESC
+          LIMIT  30
+        `),
+        countDuplicateGroups(db),
+      ]);
+
+      const archiveExts = await Promise.all(
+        archives.map(a => db.all(`
+          SELECT ext,
+                 COUNT(*)               AS count,
+                 COALESCE(SUM(size), 0) AS total_size
+          FROM   files
+          WHERE  archive_id = ? AND ext IS NOT NULL AND ext != ''
+          GROUP  BY ext
+          ORDER  BY total_size DESC
+          LIMIT  15
+        `, [a.id]))
+      );
+
+      res.json({
+        overall,
+        archives: archives.map((a, i) => ({ ...a, extensions: archiveExts[i] })),
+        extensions,
+        dupGroups,
+      });
+    } catch (err) {
+      logger.error(err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  /** Browse indexed files as a directory tree within a specific archive */
+  app.get('/api/stats/browse', async (req, res) => {
+    const archiveId = parseInt(req.query.archive, 10);
+    const dirPath   = (req.query.path || '').trim() || null;
+
+    if (!archiveId) return res.status(400).json({ error: '"archive" query parameter is required' });
+
+    try {
+      const archive = await db.get('SELECT * FROM archives WHERE id = ?', [archiveId]);
+      if (!archive) return res.status(404).json({ error: 'Archive not found' });
+
+      const rootPath   = dirPath || archive.path;
+      const normalRoot = rootPath + (rootPath.endsWith(path.sep) ? '' : path.sep);
+
+      const allFiles = await db.all(
+        'SELECT id, path, name, size, ext, modified_at FROM files WHERE archive_id = ? ORDER BY path',
+        [archiveId]
+      );
+
+      const dirs  = new Map();
+      const files = [];
+
+      for (const f of allFiles) {
+        const fileDir = path.dirname(f.path);
+
+        if (fileDir === rootPath) {
+          files.push(f);
+        } else if (f.path.startsWith(normalRoot)) {
+          const rel      = f.path.slice(normalRoot.length);
+          const firstSeg = rel.split(/[\\/]/)[0];
+          if (firstSeg) {
+            const dirFull = normalRoot + firstSeg;
+            if (!dirs.has(dirFull)) {
+              dirs.set(dirFull, { name: firstSeg, path: dirFull, file_count: 0, total_size: 0 });
+            }
+            const d = dirs.get(dirFull);
+            d.file_count++;
+            d.total_size += (f.size || 0);
+          }
+        }
+      }
+
+      const parentRaw = path.dirname(rootPath);
+      const parent    = (rootPath !== archive.path && parentRaw !== rootPath) ? parentRaw : null;
+
+      res.json({
+        archiveId,
+        archivePath: archive.path,
+        path:        rootPath,
+        parent,
+        dirs: [...dirs.values()].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        ),
+        files,
+      });
+    } catch (err) {
+      logger.error(err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  /** Download a plain-text statistics log with hierarchical path listing */
+  app.get('/api/stats/log', async (req, res) => {
+    const archiveId = req.query.archive ? parseInt(req.query.archive, 10) : null;
+
+    try {
+      const archives = archiveId
+        ? [await db.get('SELECT * FROM archives WHERE id = ?', [archiveId])].filter(Boolean)
+        : await db.all('SELECT * FROM archives ORDER BY name COLLATE NOCASE');
+
+      const numFmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+
+      const lines = [];
+      const now   = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+      lines.push('ArchivVerwalter — Statistik-Report');
+      lines.push(`Erstellt: ${now}`);
+      lines.push('='.repeat(72));
+      lines.push('');
+
+      let grandFiles = 0;
+      let grandSize  = 0;
+
+      for (const archive of archives) {
+        const files = await db.all(
+          'SELECT path, name, size, ext, modified_at FROM files WHERE archive_id = ? ORDER BY path',
+          [archive.id]
+        );
+
+        const aSize = files.reduce((s, f) => s + (f.size || 0), 0);
+        grandFiles += files.length;
+        grandSize  += aSize;
+
+        lines.push(`ARCHIV: ${archive.name}`);
+        lines.push(`  Pfad:    ${archive.path}`);
+        lines.push(`  Dateien: ${numFmt(files.length)}`);
+        lines.push(`  Grösse:  ${fmtSizeText(aSize)}`);
+        lines.push('');
+
+        const extMap = new Map();
+        for (const f of files) {
+          const e = (f.ext || '').toLowerCase() || '(ohne Extension)';
+          if (!extMap.has(e)) extMap.set(e, { count: 0, size: 0 });
+          extMap.get(e).count++;
+          extMap.get(e).size += (f.size || 0);
+        }
+        if (extMap.size) {
+          lines.push('  Dateitypen (Top 15 nach Grösse):');
+          [...extMap.entries()]
+            .sort((a, b) => b[1].size - a[1].size)
+            .slice(0, 15)
+            .forEach(([ext, info]) => {
+              lines.push(
+                `    .${ext.padEnd(10)} ${numFmt(info.count).padStart(7)}  ${fmtSizeText(info.size)}`
+              );
+            });
+          lines.push('');
+        }
+
+        const byDir = new Map();
+        for (const f of files) {
+          const dir = path.dirname(f.path);
+          if (!byDir.has(dir)) byDir.set(dir, []);
+          byDir.get(dir).push(f);
+        }
+
+        lines.push('  Verzeichnisstruktur:');
+        for (const dir of [...byDir.keys()].sort()) {
+          lines.push(`    ${dir}${path.sep}`);
+          for (const f of byDir.get(dir)) {
+            const sz   = fmtSizeText(f.size || 0);
+            const date = f.modified_at ? String(f.modified_at).slice(0, 10) : '—';
+            lines.push(`      ${f.name}  [${sz}  ${date}]`);
+          }
+        }
+
+        lines.push('');
+        lines.push('-'.repeat(72));
+        lines.push('');
+      }
+
+      lines.push('GESAMT');
+      lines.push(`  Archive: ${archives.length}`);
+      lines.push(`  Dateien: ${numFmt(grandFiles)}`);
+      lines.push(`  Grösse:  ${fmtSizeText(grandSize)}`);
+      lines.push('');
+
+      const content  = lines.join('\n');
+      const filename = archiveId
+        ? `statistik-archiv-${archiveId}.txt`
+        : 'statistik-alle-archive.txt';
+
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(content);
+    } catch (err) {
+      logger.error(err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // ── Filesystem browser ───────────────────────────────────────────────────────
 
   /** List available root volumes / drives */

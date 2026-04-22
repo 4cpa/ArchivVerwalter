@@ -44,6 +44,9 @@
       <button class="nav-btn" data-view="monitor">
         📊 <span data-i18n="nav.monitor">Monitor</span>
       </button>
+      <button class="nav-btn" data-view="stats">
+        📈 <span data-i18n="nav.stats">Statistik</span>
+      </button>
     </nav>
 
     <!-- Archive list -->
@@ -171,6 +174,33 @@
         <div class="dup-empty" data-i18n="dups.none">Keine Duplikate gefunden.</div>
       </div>
       <div class="pagination" id="dup-pagination"></div>
+    </div>
+
+    <!-- Statistik -->
+    <div id="view-stats" class="view">
+      <div class="view-header">
+        <h2 data-i18n="stats.title">Statistik</h2>
+        <div class="stats-header-actions">
+          <button class="btn btn-sm" id="btn-refresh-stats"
+                  data-i18n="btn.refresh">Aktualisieren</button>
+          <a id="stats-log-all" class="btn btn-sm" href="/api/stats/log" download
+             data-i18n="stats.dl_all">Log herunterladen</a>
+        </div>
+      </div>
+      <div id="stats-summary" class="stats-summary"></div>
+      <div class="stats-layout">
+        <div class="stats-left" id="stats-archives">
+          <div class="empty-state">
+            <div class="icon">📊</div>
+            <p data-i18n="stats.loading">Lädt Statistik…</p>
+          </div>
+        </div>
+        <div class="stats-right" id="stats-browser">
+          <div class="stats-browser-empty">
+            <span data-i18n="stats.browser_hint">Archiv auswählen, um zu durchsuchen</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Monitor -->
