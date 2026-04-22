@@ -26,7 +26,7 @@ jobs:
         include:
           - os: ubuntu-latest
             script: dist:linux
-            artifact: linux-x64
+            artifact: linux
 
           - os: windows-latest
             script: dist:win10
@@ -123,6 +123,8 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
           if-no-files-found: error
 
   # ── GitHub Release ─────────────────────────────────────────────────────────
@@ -168,5 +170,7 @@ jobs:
             artifacts/*.dmg \
             artifacts/*.AppImage \
             artifacts/*.deb \
+            artifacts/*.rpm \
+            artifacts/*.tar.gz \
             --title "ArchivVerwalter ${TAG}" \
             --notes-file release-notes.md
