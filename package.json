@@ -22,7 +22,9 @@
     "dist:win11:x64": "electron-builder install-app-deps --arch x64 && electron-builder --win --config build/win11.js --x64 --publish=never",
     "dist:win11:arm64": "electron-builder install-app-deps --arch arm64 && electron-builder --win --config build/win11.js --arm64 --publish=never",
     "dist:mac": "npm run electron:rebuild && electron-builder --mac --publish=never",
-    "dist:linux": "electron-builder install-app-deps --arch x64 && electron-builder --linux --publish=never",
+    "dist:linux": "npm run dist:linux:x64 && npm run dist:linux:arm64",
+    "dist:linux:x64": "electron-builder install-app-deps --arch x64 && electron-builder --linux --x64 --publish=never",
+    "dist:linux:arm64": "electron-builder install-app-deps --arch arm64 && electron-builder --linux --arm64 --publish=never",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch --runInBand",
     "test:coverage": "jest --coverage --runInBand --forceExit",
@@ -112,15 +114,23 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64", "arm64"]
         },
         {
           "target": "deb",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "pacman",
+          "arch": ["x64"]
+        },
+        {
+          "target": "tar.gz",
+          "arch": ["x64", "arm64"]
         }
       ],
       "category": "Utility",
