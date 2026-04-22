@@ -170,8 +170,12 @@
     <div id="view-duplicates" class="view">
       <div class="view-header">
         <h2 data-i18n="dups.title">Duplikate</h2>
-        <button class="btn" id="btn-refresh-dups"
-                data-i18n="btn.refresh">Aktualisieren</button>
+        <div class="view-header-actions">
+          <button class="btn btn-sm btn-danger" id="btn-resolve-all-dups"
+                  data-i18n="dups.resolve_all" hidden>Alle auflösen</button>
+          <button class="btn" id="btn-refresh-dups"
+                  data-i18n="btn.refresh">Aktualisieren</button>
+        </div>
       </div>
       <div id="dup-col-bar" class="dup-col-bar" hidden></div>
       <div class="dup-scroll" id="dup-list">

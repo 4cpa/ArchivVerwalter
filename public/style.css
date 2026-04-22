@@ -442,6 +442,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   flex-shrink: 0;
 }
 .view-header h2 { font-size: .95rem; font-weight: 700; }
+.view-header-actions { display: flex; align-items: center; gap: 8px; }
 
 /* ── Duplicates view ─────────────────────────────────────────────────────── */
 .dup-col-bar { flex-shrink: 0; background: #f4f6f8; border-bottom: 2px solid var(--border); padding: 0 20px; }

@@ -42,6 +42,7 @@ const TRANSLATIONS = {
     'btn.delete': 'L\u00f6schen',
     'btn.refresh':'Aktualisieren',
     'btn.reset':  'Zur\u00fccksetzen',
+    'files.filters_reset': 'Filter zur\u00fcckgesetzt',
 
     // File table
     'files.filter_name_ph': 'Dateiname suchen \u2026',
@@ -96,6 +97,9 @@ const TRANSLATIONS = {
     'dups.refreshed':    'Aktualisiert \u2014 {count} Gruppe(n) gefunden',
     'dups.dl_title':     'Herunterladen',
     'dups.groups':       'Gruppen',
+    'dups.resolve_all':         'Alle auflösen',
+    'dups.resolve_all_confirm': 'Alle {groups} Duplikatgruppe(n) auflösen? Jeweils die erste Datei wird behalten, alle anderen unwiderruflich gelöscht.',
+    'dups.resolve_all_done':    '{deleted} Datei(en) aus {groups} Gruppe(n) gelöscht',
 
     // Monitor
     'monitor.title':      'Monitor',
@@ -199,6 +203,7 @@ const TRANSLATIONS = {
     'btn.delete': 'Delete',
     'btn.refresh':'Refresh',
     'btn.reset':  'Reset',
+    'files.filters_reset': 'Filters reset',
 
     'files.filter_name_ph': 'Search filename \u2026',
     'files.filter_ext_ph':  'Type: pdf, jpg \u2026',
@@ -251,6 +256,9 @@ const TRANSLATIONS = {
     'dups.refreshed':    'Refreshed \u2014 {count} group(s) found',
     'dups.dl_title':     'Download',
     'dups.groups':       'groups',
+    'dups.resolve_all':         'Resolve all',
+    'dups.resolve_all_confirm': 'Resolve all {groups} duplicate group(s)? The first file in each group is kept; all others are permanently deleted.',
+    'dups.resolve_all_done':    '{deleted} file(s) deleted from {groups} group(s)',
 
     'monitor.title':      'Monitor',
     'monitor.status':     'Status',
@@ -352,6 +360,7 @@ const TRANSLATIONS = {
     'btn.delete': 'Supprimer',
     'btn.refresh':'Actualiser',
     'btn.reset':  'R\u00e9initialiser',
+    'files.filters_reset': 'Filtres r\u00e9initialis\u00e9s',
 
     'files.filter_name_ph': 'Rechercher un fichier \u2026',
     'files.filter_ext_ph':  'Type\u00a0: pdf, jpg \u2026',
@@ -404,6 +413,9 @@ const TRANSLATIONS = {
     'dups.refreshed':    'Actualis\u00e9 \u2014 {count} groupe(s) trouv\u00e9(s)',
     'dups.dl_title':     'T\u00e9l\u00e9charger',
     'dups.groups':       'groupes',
+    'dups.resolve_all':         'Tout résoudre',
+    'dups.resolve_all_confirm': 'Résoudre tous les {groups} groupe(s) de doublons ? Le premier fichier de chaque groupe est conservé ; les autres sont supprimés définitivement.',
+    'dups.resolve_all_done':    '{deleted} fichier(s) supprimé(s) dans {groups} groupe(s)',
 
     'monitor.title':      'Moniteur',
     'monitor.status':     'Statut',

@@ -589,6 +589,24 @@ function createApp(db) {
     }
   });
 
+  app.post('/api/duplicates/resolve-all', async (_req, res) => {
+    try {
+      const groups = await findDuplicates(db);
+      let deletedTotal = 0;
+      for (const group of groups) {
+        const keepId    = group.files[0].id;
+        const deleteIds = group.files.slice(1).map(f => f.id);
+        const result    = await resolveGroup(db, keepId, deleteIds);
+        deletedTotal   += result.deleted.length;
+      }
+      logger.info(`Alle Duplikate aufgelöst — ${deletedTotal} Dateien aus ${groups.length} Gruppen gelöscht`);
+      res.json({ deleted: deletedTotal, groups: groups.length });
+    } catch (err) {
+      logger.error(err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // ── Statistics ────────────────────────────────────────────────────────────────
 
   function fmtSizeText(bytes) {

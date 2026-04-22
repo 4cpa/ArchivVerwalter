@@ -82,7 +82,8 @@ const api = {
   getFiles:      (params)   => api.get('/api/files?' + new URLSearchParams(params)),
   deleteFile:    (id, dbOnly) => api.delete(`/api/files/${id}${dbOnly ? '?dbOnly=true' : ''}`),
   getDuplicates: ()         => api.get('/api/duplicates'),
-  resolveDups:   (keep, del)=> api.post('/api/duplicates/resolve', { keepId: keep, deleteIds: del }),
+  resolveDups:    (keep, del) => api.post('/api/duplicates/resolve', { keepId: keep, deleteIds: del }),
+  resolveDupsAll: ()          => api.post('/api/duplicates/resolve-all', {}),
 
   getDrives:  ()     => api.get('/api/fs/drives'),
   browse:     (p)    => api.get('/api/fs/browse?' + new URLSearchParams({ path: p })),
@@ -320,6 +321,9 @@ function renderDuplicates(groups) {
   const totalPages = Math.max(1, Math.ceil(groups.length / state.dupLimit));
   if (state.dupPage > totalPages) state.dupPage = totalPages;
 
+  const resolveAllBtn = document.getElementById('btn-resolve-all-dups');
+  if (resolveAllBtn) resolveAllBtn.hidden = groups.length === 0;
+
   if (!groups.length) {
     wrap.innerHTML = `<div class="dup-empty">${escHtml(t('dups.success'))}</div>`;
     if (colBar) colBar.hidden = true;
@@ -374,7 +378,7 @@ function renderDuplicates(groups) {
       <div class="dup-group" id="dup-group-${realGi}">
         <div class="dup-group-header">
           <span class="dup-group-title">${escHtml(t('dups.count', { count: g.count }))}</span>
-          <span class="dup-hash">${g.hash.slice(0, 16)}\u2026</span>
+          <span class="dup-hash" title="SHA-256: ${g.hash}">${g.hash.slice(0, 16)}\u2026</span>
           <button class="btn btn-sm btn-danger"
                   data-action="resolve-all" data-group="${realGi}">
             ${escHtml(t('dups.resolve_btn'))}
@@ -1180,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('filter-dups').checked = false;
     renderArchives();
     await loadFiles();
+    toast(t('files.filters_reset'), 'success');
   });
 
   // ── Refresh files ─────────────────────────────────────────────────────────
@@ -1422,6 +1427,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Refresh buttons ───────────────────────────────────────────────────────
   document.getElementById('btn-refresh-dups').addEventListener('click', () => loadDuplicates(true));
+
+  document.getElementById('btn-resolve-all-dups').addEventListener('click', async () => {
+    const groups = state.dupGroups.length;
+    if (!groups) return;
+    const ok = await confirmDlg(
+      t('dups.resolve_all'),
+      t('dups.resolve_all_confirm', { groups })
+    );
+    if (!ok) return;
+    try {
+      const r = await api.resolveDupsAll();
+      toast(t('dups.resolve_all_done', { deleted: r.deleted, groups: r.groups }), 'success');
+      log(t('dups.resolve_all_done', { deleted: r.deleted, groups: r.groups }));
+      await loadDuplicates(true);
+    } catch (err) {
+      toast(t('dups.load_error', { msg: err.message }), 'error');
+    }
+  });
   document.getElementById('btn-refresh-health').addEventListener('click', loadHealth);
   document.getElementById('btn-refresh-stats').addEventListener('click', loadStats);
 
