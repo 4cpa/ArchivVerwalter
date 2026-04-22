@@ -118,6 +118,7 @@ function createWindow() {
     minHeight:       600,
     title:           'ArchivVerwalter',
     backgroundColor: '#1a1f2e',
+    icon:            path.join(__dirname, 'icons', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     // show:false keeps the window hidden until Chromium has fully painted the
     // loading screen — eliminates the white / blank flash on Windows 11.
     show:            false,
