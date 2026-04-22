@@ -134,12 +134,6 @@
           ]
         },
         {
-          "target": "pacman",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
           "target": "tar.gz",
           "arch": [
             "x64",
