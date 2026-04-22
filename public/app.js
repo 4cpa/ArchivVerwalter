@@ -202,7 +202,7 @@ function renderFiles() {
         <td>${ext}</td>
         <td>${formatSize(f.size)}</td>
         <td>${escHtml(f.archive_name)}</td>
-        <td>${formatDate(f[state.dateCol])}</td>
+        <td>${formatDate(f[state.dateCol] ?? (state.dateCol === 'created_at' ? f.indexed_at : null))}</td>
         <td>
           <div class="cell-actions">
             <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"
@@ -1183,7 +1183,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Refresh files ─────────────────────────────────────────────────────────
-  document.getElementById('btn-refresh-files').addEventListener('click', () => loadFiles());
+  document.getElementById('btn-refresh-files').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-refresh-files');
+    btn.disabled = true;
+    await loadFiles();
+    btn.disabled = false;
+    toast(t('files.refreshed', { count: state.total }), 'success');
+  });
 
   // ── Date column toggle ────────────────────────────────────────────────────
   document.getElementById('btn-toggle-date').addEventListener('click', async (e) => {
