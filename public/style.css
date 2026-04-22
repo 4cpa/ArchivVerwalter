@@ -220,6 +220,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  flex-shrink: 0;
 }
 .archive-item:hover { background: rgba(255,255,255,.05); }
 .archive-item.active { background: rgba(74,158,255,.18); }
@@ -424,6 +425,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow);
+  flex-shrink: 0;
 }
 .view-header h2 { font-size: .95rem; font-weight: 700; }
 
@@ -890,6 +892,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   overflow: hidden;
   box-shadow: var(--shadow);
   transition: border-color .15s, box-shadow .15s;
+  flex-shrink: 0;
 }
 .stats-archive-card.active {
   border-color: var(--primary);
@@ -1011,6 +1014,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   display: flex;
   flex-direction: column;
   gap: 1px;
+  flex-shrink: 0;
 }
 .stats-browser-entry {
   display: flex;
@@ -1043,6 +1047,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   color: var(--text-muted);
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.stats-browser-entry-meta-row {
+  white-space: nowrap;
 }
 .stats-browser-entry-acts {
   display: flex;

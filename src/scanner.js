@@ -67,18 +67,20 @@ async function scanArchive(db, archiveId, archivePath, onProgress) {
       const ext  = raw.length > 1 ? raw.slice(1) : null; // strip leading dot
 
       const hash = await hashFile(filePath);
+      const createdAt = stat.birthtimeMs > 1000 ? stat.birthtime.toISOString() : null;
 
       await db.run(
-        `INSERT INTO files (archive_id, path, name, ext, size, hash, modified_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO files (archive_id, path, name, ext, size, hash, modified_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(path) DO UPDATE SET
            name        = excluded.name,
            ext         = excluded.ext,
            size        = excluded.size,
            hash        = excluded.hash,
            modified_at = excluded.modified_at,
+           created_at  = excluded.created_at,
            indexed_at  = datetime('now')`,
-        [archiveId, filePath, name, ext, stat.size, hash, stat.mtime.toISOString()]
+        [archiveId, filePath, name, ext, stat.size, hash, stat.mtime.toISOString(), createdAt]
       );
 
       indexed++;

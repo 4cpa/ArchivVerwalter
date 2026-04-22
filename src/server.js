@@ -611,7 +611,7 @@ function createApp(db) {
       const normalRoot = rootPath + (rootPath.endsWith(path.sep) ? '' : path.sep);
 
       const allFiles = await db.all(
-        'SELECT id, path, name, size, ext, modified_at FROM files WHERE archive_id = ? ORDER BY path',
+        'SELECT id, path, name, size, ext, modified_at, created_at FROM files WHERE archive_id = ? ORDER BY path',
         [archiveId]
       );
 

@@ -967,7 +967,9 @@ function renderStatsBrowser(data) {
       <span class="stats-browser-entry-icon">&#128196;</span>
       <span class="stats-browser-entry-name" title="${escHtml(f.path)}">${escHtml(f.name)}</span>
       <span class="stats-browser-entry-meta">
-        ${escHtml(formatSize(f.size))} &middot; ${escHtml(formatDate(f.modified_at))}
+        <span class="stats-browser-entry-meta-row">${escHtml(formatSize(f.size))}</span>
+        ${f.created_at ? `<span class="stats-browser-entry-meta-row">${escHtml(t('stats.created'))} ${escHtml(formatDate(f.created_at))}</span>` : ''}
+        <span class="stats-browser-entry-meta-row">${escHtml(t('stats.modified'))} ${escHtml(formatDate(f.modified_at))}</span>
       </span>
       <span class="stats-browser-entry-acts">
         <a href="${api.downloadUrl(f.id)}" class="btn-icon-sm"

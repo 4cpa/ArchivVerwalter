@@ -61,6 +61,8 @@ class Database {
     this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_hash    ON files(hash)`);
     this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_archive ON files(archive_id)`);
     this._db.exec(`CREATE INDEX IF NOT EXISTS idx_files_ext     ON files(ext)`);
+
+    try { this._db.exec(`ALTER TABLE files ADD COLUMN created_at TEXT`); } catch {}
   }
 
   /**

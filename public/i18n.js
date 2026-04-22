@@ -154,6 +154,8 @@ const TRANSLATIONS = {
     'stats.load_error':      'Fehler beim Laden: {msg}',
     'stats.no_archives':     'Noch keine Archive vorhanden.',
     'stats.loading':         'Lädt Statistik…',
+    'stats.created':         'Erstellt',
+    'stats.modified':        'Geändert',
 
     // General errors
     'error.generic':      'Fehler: {msg}',
@@ -304,6 +306,8 @@ const TRANSLATIONS = {
     'stats.load_error':      'Error loading: {msg}',
     'stats.no_archives':     'No archives yet.',
     'stats.loading':         'Loading statistics…',
+    'stats.created':         'Created',
+    'stats.modified':        'Modified',
 
     'error.generic':      'Error: {msg}',
   },
@@ -454,6 +458,8 @@ const TRANSLATIONS = {
     'stats.load_error':      'Erreur de chargement : {msg}',
     'stats.no_archives':     'Aucune archive.',
     'stats.loading':         'Chargement des statistiques…',
+    'stats.created':         'Créé',
+    'stats.modified':        'Modifié',
     'error.generic':      'Erreur\u00a0: {msg}',
   },
 };

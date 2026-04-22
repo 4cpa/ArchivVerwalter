@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.35] — 2026-04-22
+
+---
+
+## [1.2.35] — 2026-04-22
+
+### Fixed
+- **Statistik-Ansicht** — Archiv-Karten (linke Spalte) und Browser-Einträge
+  (rechte Spalte) schrumpften in ihren Flex-Containern statt zu scrollen;
+  `flex-shrink: 0` an `.stats-archive-card` und `.stats-browser-entries` ergänzt.
+- **Sidebar-Archivliste** — `flex-shrink: 0` an `.archive-item` gesetzt, damit
+  die Liste bei vielen Einträgen korrekt scrollt.
+
+### Added
+- **Erstellungsdatum** im Statistik-Datei-Browser: Dateien zeigen jetzt neben
+  Grösse und Änderungsdatum auch das Erstellungsdatum (Dateisystem-Birthtime)
+  an, sofern das Dateisystem es liefert.
+- Neue DB-Spalte `created_at` in der `files`-Tabelle (automatische Migration
+  beim Start); beim Scan wird `stat.birthtime` gespeichert.
+- Übersetzungsschlüssel `stats.created` / `stats.modified` für DE, EN und FR.
+
+---
+
 ## [1.2.34] — 2026-04-22
 
 ---
