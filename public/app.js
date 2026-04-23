@@ -537,10 +537,7 @@ function switchView(viewName) {
 function rerender() {
   renderArchives();
   renderFiles();
-  if (state.view === 'duplicates') {
-    if (state.dupGroups.length) renderDuplicates(state.dupGroups);
-    else renderDupPagination();
-  }
+  if (state.view === 'duplicates') renderDuplicates(state.dupGroups);
   if (state.view === 'monitor') loadHealth();
   if (state.view === 'stats' && state.statsData) renderStats(state.statsData);
   updatePathPlaceholder();
