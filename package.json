@@ -74,6 +74,8 @@
     },
     "files": [
       "electron/main.js",
+      "electron/icons/icon.ico",
+      "electron/icons/icon.png",
       "src/**/*",
       "index.js",
       "package.json"
