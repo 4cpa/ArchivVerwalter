@@ -163,6 +163,9 @@ const TRANSLATIONS = {
     'stats.created':         'Erstellt',
     'stats.modified':        'Geändert',
 
+    // Footer donate
+    'footer.donate':      'Spende',
+
     // General errors
     'error.generic':      'Fehler: {msg}',
   },
@@ -321,6 +324,9 @@ const TRANSLATIONS = {
     'stats.created':         'Created',
     'stats.modified':        'Modified',
 
+    // Footer donate
+    'footer.donate':      'Donate',
+
     'error.generic':      'Error: {msg}',
   },
 
@@ -478,6 +484,9 @@ const TRANSLATIONS = {
     'stats.loading':         'Chargement des statistiques…',
     'stats.created':         'Créé',
     'stats.modified':        'Modifié',
+    // Footer donate
+    'footer.donate':      'Don',
+
     'error.generic':      'Erreur\u00a0: {msg}',
   },
 };

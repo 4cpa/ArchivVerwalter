@@ -131,6 +131,56 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 }
 .footer-mail:hover { color: var(--sidebar-accent); }
 
+/* ── Sidebar donate section ── */
+.footer-donate {
+  margin-top: 8px;
+}
+.donate-label {
+  display: block;
+  font-size: .58rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.22);
+  margin-bottom: 5px;
+}
+.donate-btns {
+  display: flex;
+  gap: 6px;
+}
+.donate-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 6px;
+  border-radius: var(--radius);
+  font-size: .65rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background .15s, border-color .15s, opacity .15s;
+  line-height: 1;
+}
+.donate-kofi {
+  color: #72a4f2;
+  background: rgba(114,164,242,.1);
+  border-color: rgba(114,164,242,.28);
+}
+.donate-kofi:hover {
+  background: rgba(114,164,242,.2);
+  border-color: rgba(114,164,242,.5);
+}
+.donate-twint {
+  color: #009BD9;
+  background: rgba(0,155,217,.1);
+  border-color: rgba(0,155,217,.28);
+}
+.donate-twint:hover {
+  background: rgba(0,155,217,.2);
+  border-color: rgba(0,155,217,.5);
+}
+
 /* Nav tabs */
 .main-nav { display: flex; flex-direction: column; padding: 8px 10px; gap: 2px; }
 .nav-btn {

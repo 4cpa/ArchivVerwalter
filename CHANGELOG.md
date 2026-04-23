@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.48] — 2026-04-23
+
+### Added
+- **Spendenbereich** im Sidebar-Footer: Ko-fi- und TWINT-Buttons mit
+  Brand-Logos (SVG) und passenden Markenfarben direkt unterhalb der
+  E-Mail-Adresse; Label «Spende / Donate / Don» in DE/EN/FR übersetzt.
+
+---
+
 ## [1.2.47] — 2026-04-23
 
 ---
