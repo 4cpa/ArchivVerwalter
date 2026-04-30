@@ -172,13 +172,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   border-color: rgba(114,164,242,.5);
 }
 .donate-twint {
-  color: #009BD9;
-  background: rgba(0,155,217,.1);
-  border-color: rgba(0,155,217,.28);
+  color: #72a4f2;
+  background: rgba(114,164,242,.1);
+  border-color: rgba(114,164,242,.28);
 }
 .donate-twint:hover {
-  background: rgba(0,155,217,.2);
-  border-color: rgba(0,155,217,.5);
+  background: rgba(114,164,242,.2);
+  border-color: rgba(114,164,242,.5);
 }
 
 /* Nav tabs */
