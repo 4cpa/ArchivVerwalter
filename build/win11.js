@@ -27,6 +27,12 @@ module.exports = {
     artifactName: '${productName}-Setup-${version}-win11-${arch}.${ext}'
   },
 
+  // store = no LZMA compression → no decompression step during install.
+  // Windows Defender (24H2+) interferes with NSIS's LZMA extraction in %TEMP%,
+  // causing "Fehler beim Entpacken". Without compression the files are copied
+  // directly — Defender can scan them but cannot block the extraction step.
+  compression: 'store',
+
   nsis: {
     oneClick: false,
     // perMachine: false → installs to %LOCALAPPDATA%\Programs, no UAC needed
