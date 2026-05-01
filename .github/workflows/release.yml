@@ -54,8 +54,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
+
+      - name: Cache Electron binary
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/AppData/Local/electron/Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       # better-sqlite3 falls back to compiling from source when no prebuilt
       # binary matches the exact Electron ABI — Python + build tools cover that.
