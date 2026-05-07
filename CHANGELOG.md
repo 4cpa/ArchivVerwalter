@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.53] — 2026-05-07
 
----
-
-## [1.2.53] — 2026-05-07
-
 ### Added
 - **Hilfemenü** (DE / EN / FR): diskreter `?`-Button am Ende der Seitenleisten-Navigation
   öffnet ein modal mit zweispaltiger Übersicht aller Bedienelemente — Archive,
