@@ -47,6 +47,10 @@
       <button class="nav-btn" data-view="stats">
         📈 <span data-i18n="nav.stats">Statistik</span>
       </button>
+      <button class="nav-btn nav-help-btn" id="btn-help"
+              data-i18n-title="help.title" title="Bedienungshinweise">
+        &#63; <span data-i18n="help.btn">Hilfe</span>
+      </button>
     </nav>
 
     <!-- Archive list -->
@@ -271,6 +275,76 @@
   </div>
 </div>
 
+
+<!-- ── Help modal ─────────────────────────────────────────────────────────── -->
+<div id="help-modal" class="help-modal hidden">
+  <div class="help-modal-box">
+    <div class="help-modal-hdr">
+      <span class="help-modal-title" data-i18n="help.title">Bedienungshinweise</span>
+      <button id="help-close" class="help-close-btn">&#10005;</button>
+    </div>
+    <div class="help-modal-body">
+      <div class="help-cols">
+
+        <div class="help-col">
+          <div class="help-section-title" data-i18n="help.sec.archives">Archive</div>
+          <div class="help-row">
+            <kbd class="help-key">+</kbd>
+            <span data-i18n="help.arch.add"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#9658;</kbd>
+            <span data-i18n="help.arch.scan"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#215;</kbd>
+            <span data-i18n="help.arch.remove"></span>
+          </div>
+
+          <div class="help-section-title" data-i18n="help.sec.files">Dateien</div>
+          <div class="help-row">
+            <kbd class="help-key">&#128269;</kbd>
+            <span data-i18n="help.files.filter"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#8597;</kbd>
+            <span data-i18n="help.files.sort"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#8644;</kbd>
+            <span data-i18n="help.files.date"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#9745;</kbd>
+            <span data-i18n="help.files.select"></span>
+          </div>
+          <div class="help-row">
+            <kbd class="help-key">&#8943;</kbd>
+            <span data-i18n="help.files.actions"></span>
+          </div>
+        </div>
+
+        <div class="help-col">
+          <div class="help-section-title" data-i18n="help.sec.dups">Duplikate</div>
+          <div class="help-row"><span data-i18n="help.dups.groups"></span></div>
+          <div class="help-row"><span data-i18n="help.dups.keep"></span></div>
+          <div class="help-row"><span data-i18n="help.dups.all"></span></div>
+
+          <div class="help-section-title" data-i18n="help.sec.stats">Statistik</div>
+          <div class="help-row"><span data-i18n="help.stats.desc"></span></div>
+
+          <div class="help-section-title" data-i18n="help.sec.monitor">Monitor</div>
+          <div class="help-row"><span data-i18n="help.monitor.desc"></span></div>
+        </div>
+
+      </div>
+      <div class="help-tip">
+        <span class="help-tip-icon">&#128161;</span>
+        <span data-i18n="help.tip"></span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>

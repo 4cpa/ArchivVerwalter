@@ -168,6 +168,29 @@ const TRANSLATIONS = {
 
     // General errors
     'error.generic':      'Fehler: {msg}',
+
+    // Help modal
+    'help.btn':           'Hilfe',
+    'help.title':         'Bedienungshinweise',
+    'help.sec.archives':  'Archive',
+    'help.arch.add':      'Mit + ein neues Archiv hinzufügen. Pfad direkt eingeben oder per Ordner-Browser wählen.',
+    'help.arch.scan':     'Scan starten indexiert alle Dateien im Ordner. Der Fortschritt wird live angezeigt.',
+    'help.arch.remove':   'Entfernen löscht das Archiv aus dem Index – Dateien auf der Festplatte bleiben erhalten.',
+    'help.sec.files':     'Dateien',
+    'help.files.filter':  'Nach Dateiname, Typ (pdf, jpg …) oder nur Duplikate filtern.',
+    'help.files.sort':    'Spaltenköpfe anklicken zum Sortieren auf- oder absteigend.',
+    'help.files.date':    '⇄ wechselt zwischen Änderungs- und Erstellungsdatum.',
+    'help.files.select':  'Checkboxen für Mehrfachauswahl – dann Löschen oder Pfade kopieren.',
+    'help.files.actions': 'Zeilensymbole: Vorschau · Herunterladen · Pfad kopieren · Löschen.',
+    'help.sec.dups':      'Duplikate',
+    'help.dups.groups':   'Dateien mit identischem Inhalt werden nach Hash-Wert gruppiert.',
+    'help.dups.keep':     'Behalten markiert die gewünschte Kopie; alle anderen werden gelöscht.',
+    'help.dups.all':      'Alle auflösen behält jeweils die erste Datei jeder Gruppe.',
+    'help.sec.stats':     'Statistik',
+    'help.stats.desc':    'Archivkarte anklicken für Dateitypen-Übersicht und Verzeichnis-Browser. Log herunterladen exportiert alle Einträge.',
+    'help.sec.monitor':   'Monitor',
+    'help.monitor.desc':  'Echtzeit-Systemdaten (RAM, Uptime, Status) und Aktivitätslog der laufenden Sitzung.',
+    'help.tip':           'Klick ausserhalb des Dialogs oder Escape schliesst die Überlagerung.',
   },
 
   en: {
@@ -328,6 +351,29 @@ const TRANSLATIONS = {
     'footer.donate':      'Donate',
 
     'error.generic':      'Error: {msg}',
+
+    // Help modal
+    'help.btn':           'Help',
+    'help.title':         'How to use',
+    'help.sec.archives':  'Archives',
+    'help.arch.add':      'Click + to add a new archive. Type a path directly or pick one with the folder browser.',
+    'help.arch.scan':     'Start scan indexes all files in the folder. Progress is shown live.',
+    'help.arch.remove':   'Remove deletes the archive from the index – files on disk are not affected.',
+    'help.sec.files':     'Files',
+    'help.files.filter':  'Filter by filename, type (pdf, jpg …) or duplicates only.',
+    'help.files.sort':    'Click column headers to sort ascending or descending.',
+    'help.files.date':    '⇄ toggles between modified date and created date.',
+    'help.files.select':  'Checkboxes for multi-select – then delete or copy paths in bulk.',
+    'help.files.actions': 'Row icons: Preview · Download · Copy path · Delete.',
+    'help.sec.dups':      'Duplicates',
+    'help.dups.groups':   'Files with identical content are grouped by hash value.',
+    'help.dups.keep':     'Keep marks the copy to retain; all others will be deleted.',
+    'help.dups.all':      'Resolve all keeps the first file of each group.',
+    'help.sec.stats':     'Statistics',
+    'help.stats.desc':    'Click an archive card for file type details and directory browser. Download log exports all entries.',
+    'help.sec.monitor':   'Monitor',
+    'help.monitor.desc':  'Live system data (RAM, uptime, status) and an activity log for the current session.',
+    'help.tip':           'Click outside a dialog or press Escape to close overlays.',
   },
 
   fr: {
@@ -488,6 +534,29 @@ const TRANSLATIONS = {
     'footer.donate':      'Don',
 
     'error.generic':      'Erreur\u00a0: {msg}',
+
+    // Help modal
+    'help.btn':           'Aide',
+    'help.title':         'Mode d\u2019emploi',
+    'help.sec.archives':  'Archives',
+    'help.arch.add':      'Cliquer + pour ajouter une archive. Saisir le chemin directement ou le choisir avec le navigateur de dossiers.',
+    'help.arch.scan':     'Lancer le scan indexe tous les fichiers du dossier. La progression s\u2019affiche en direct.',
+    'help.arch.remove':   'Supprimer retire l\u2019archive de l\u2019index \u2013 les fichiers sur le disque restent intacts.',
+    'help.sec.files':     'Fichiers',
+    'help.files.filter':  'Filtrer par nom, type (pdf, jpg \u2026) ou afficher uniquement les doublons.',
+    'help.files.sort':    'Cliquer sur les en-t\u00eates de colonnes pour trier croissant ou d\u00e9croissant.',
+    'help.files.date':    '\u21c4 bascule entre la date de modification et la date de cr\u00e9ation.',
+    'help.files.select':  'Cases \u00e0 cocher pour la s\u00e9lection multiple \u2013 puis supprimer ou copier les chemins.',
+    'help.files.actions': 'Ic\u00f4nes de ligne\u00a0: Aper\u00e7u \u00b7 T\u00e9l\u00e9charger \u00b7 Copier le chemin \u00b7 Supprimer.',
+    'help.sec.dups':      'Doublons',
+    'help.dups.groups':   'Les fichiers au contenu identique sont regroup\u00e9s par valeur de hachage.',
+    'help.dups.keep':     'Conserver marque la copie souhait\u00e9e\u00a0; toutes les autres seront supprim\u00e9es.',
+    'help.dups.all':      'Tout r\u00e9soudre conserve le premier fichier de chaque groupe.',
+    'help.sec.stats':     'Statistiques',
+    'help.stats.desc':    'Cliquer sur une carte d\u2019archive pour les types de fichiers et le navigateur de dossiers. T\u00e9l\u00e9charger le journal exporte toutes les entr\u00e9es.',
+    'help.sec.monitor':   'Moniteur',
+    'help.monitor.desc':  'Donn\u00e9es syst\u00e8me en temps r\u00e9el (RAM, disponibilit\u00e9, statut) et journal d\u2019activit\u00e9 de la session.',
+    'help.tip':           'Cliquer en dehors de la bo\u00eete de dialogue ou appuyer sur \u00c9chap pour fermer les superpositions.',
   },
 };
 

@@ -1026,8 +1026,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('langchange', rerender);
 
   // ── View switcher ─────────────────────────────────────────────────────────
-  document.querySelectorAll('.nav-btn').forEach(btn => {
+  document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  // ── Help modal ────────────────────────────────────────────────────────────
+  const helpModal = document.getElementById('help-modal');
+  const helpClose = document.getElementById('help-close');
+
+  document.getElementById('btn-help').addEventListener('click', () => {
+    helpModal.classList.remove('hidden');
+  });
+  helpClose.addEventListener('click', () => {
+    helpModal.classList.add('hidden');
+  });
+  helpModal.addEventListener('click', (e) => {
+    if (e.target === helpModal) helpModal.classList.add('hidden');
   });
 
   // ── Add archive form ──────────────────────────────────────────────────────
@@ -1062,8 +1076,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (link && link.dataset.path) fsBrowser.navigate(link.dataset.path);
   });
 
-  // Backspace key while modal is open → go up one level (not inside input fields)
+  // Backspace key while fs-modal is open → go up one level (not inside input fields)
+  // Escape closes help modal or fs-modal
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (!helpModal.classList.contains('hidden')) { helpModal.classList.add('hidden'); return; }
+    }
     if (document.getElementById('fs-modal').classList.contains('hidden')) return;
     if (e.key !== 'Backspace') return;
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;

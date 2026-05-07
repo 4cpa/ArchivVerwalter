@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.53] — 2026-05-07
+
+### Added
+- **Hilfemenü** (DE / EN / FR): diskreter `?`-Button am Ende der Seitenleisten-Navigation
+  öffnet ein modal mit zweispaltiger Übersicht aller Bedienelemente — Archive,
+  Dateien, Duplikate, Statistik und Monitor — inkl. Tastatur-Symbole und
+  einem Hinweis-Banner; schliessen via ✕, Klick auf Hintergrund oder Escape.
+- **42 neue i18n-Schlüssel** (je 14 pro Sprache) für alle Hilfetexte.
+- Escape-Taste schliesst jetzt auch das Hilfemenü.
+
+---
+
 ## [1.2.52] — 2026-05-01
 
 ---
